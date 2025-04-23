@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant Client
+    participant Server
+    participant AuthService
+    participant UserService
+    participant Database
+
+    Client->>AuthService: POST /api/auth/login (email, pwd)
+    AuthService->>UserService: getUserByEmail()
+    UserService->>Database: findUser
+    Database-->>UserService: User returned
+    UserService-->>AuthService: User returned
+    AuthService->>AuthService: verify password (bcryptjs.compare)
+    AuthService->>AuthService: create session (store user ID)
+    AuthService-->>Client: 200 OK (user data, no pwd) 
