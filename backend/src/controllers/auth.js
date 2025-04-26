@@ -5,12 +5,23 @@ import userService from "../services/userService.js";
 import hashing from "../utils/hashing.js"; // bcryptjs
 import { json } from "express";
 
-// --- service ---
+// --- controller ---
 /**
- * auth services
- * - register
+ * auth controller
+ *   - register
  *   - login
  *   - logout
+ */
+
+/**
+ * @description logic for registering a new user
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ *  - success: calls login function after registering a new user
+ *  - failure: returns 400 status code and message
  */
 const registerFunc = (req, res, next) => {
   const newUser = userService.saveUser(req, res, next);
@@ -32,9 +43,22 @@ const registerFunc = (req, res, next) => {
  * @param {*} req
  * @param {*} res
  * @param {*} next
+ * @returns
+ *  - success: returns 200 status code and message
+ *  - failure: returns 400 status code and message
  */
 const loginFunc = (req, res, next) => {};
 
+/**
+ * @description logic for logging out
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ *  - success: returns 200 status code and message
+ *  - failure: returns 400 status code and message
+ */
 const logoutFunc = (req, res, next) => {};
 
 // ---------------------

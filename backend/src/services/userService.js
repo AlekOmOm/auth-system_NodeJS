@@ -5,9 +5,9 @@ import hashing from "../utils/hashing.js";
 
 // --- CRUD operations ---
 const saveUser = (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
   const hashedPassword = hashing.hash(password);
-  const user = { name, email, password: hashedPassword };
+  const user = { name, role, email, password: hashedPassword };
   const newUser = db.createUser(user);
 
   return newUser;
@@ -43,9 +43,14 @@ const getUserByNameAndEmail = (req, res, next) => {
 
 const updateUser = (req, res, next) => {
   const { id } = req.params;
-  const { name, email, password } = req.body;
+  const { name, role, email, password } = req.body;
   const hashedPassword = password; // TODO: hash password
-  const user = db.updateUser(id, { name, email, password: hashedPassword });
+  const user = db.updateUser(id, {
+    name,
+    role,
+    email,
+    password: hashedPassword,
+  });
 };
 
 // --- export ---
