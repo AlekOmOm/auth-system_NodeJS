@@ -13,7 +13,7 @@ import validation from "../utils/validation.js"; // types and XSS
 // --- routes ---
 router.post("/register", validation.register, authController.register);
 router.post("/login", validation.login, authController.login);
-router.post("/logout", validation.logout, authController.logout);
+router.post("/logout", validation.logout, isAuthenticated, authController.logout);
 
 // --- export ---
 export default router;

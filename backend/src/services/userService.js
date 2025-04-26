@@ -5,8 +5,9 @@ import hashing from "../utils/hashing.js";
 
 // --- CRUD operations ---
 const saveUser = (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
   const hashedPassword = hashing.hash(password);
+    const role = "user"; // default role
   const user = { name, role, email, password: hashedPassword };
   const newUser = db.createUser(user);
 
@@ -53,6 +54,18 @@ const updateUser = (req, res, next) => {
   });
 };
 
+// --- password compare ---
+
+const isSamePwd = (reqPwd, dbPwd) => {
+    const isMatch = hashing.compare(reqPwd, dbPwd);
+    if (!isMatch) {
+        return false;
+    }
+    return true;
+}
+
+
+
 // --- export ---
 const userService = {
   saveUser,
@@ -61,6 +74,7 @@ const userService = {
   getUserByEmail,
   getUserByNameAndEmail,
   updateUser,
+  isSamePwd,
 };
 
 export default userService;

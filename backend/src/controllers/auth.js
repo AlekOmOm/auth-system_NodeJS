@@ -24,6 +24,7 @@ import { json } from "express";
  *  - failure: returns 400 status code and message
  */
 const registerFunc = (req, res, next) => {
+    console.log("registerFunc");
   const newUser = userService.saveUser(req, res, next);
 
   if (!newUser) {
@@ -43,11 +44,36 @@ const registerFunc = (req, res, next) => {
  * @param {*} req
  * @param {*} res
  * @param {*} next
+ *
+ * @body 
+ *  - name, email, password
  * @returns
  *  - success: returns 200 status code and message
  *  - failure: returns 400 status code and message
+ *
+ *  @note
+ *  - password in db is hashed 
+ *  - password in req.body is plain text
+ *  - use hashing.compare() to compare the two passwords
  */
-const loginFunc = (req, res, next) => {};
+const loginFunc = (req, res, next) => {
+    console.log("loginFunc");
+
+    // user retrieved with hashed password
+    const user = userService.getUserByEmail(req.body.email);
+
+    if (!user) {
+        return res.status(400).json({ message: "User not found" });
+    }
+
+    if (!userService.isSamePwd(req.body.password, user.password)) {
+        return res.status(400).json({ message: "Password incorrect" });
+    }
+
+    console.log("success logged in")
+
+
+};
 
 /**
  * @description logic for logging out

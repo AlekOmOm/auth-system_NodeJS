@@ -12,7 +12,7 @@ const users = dbJson.users;
  */
 function createUser(user) {
   const newUser = {
-    id: users.length + 1,
+    id: getIncrementId(),
     ...user,
   };
   users.push(newUser);
@@ -71,6 +71,16 @@ function updateDb() {
             console.log("File successfully updated!");
         }
     });
+}
+
+function getIncrementId() {
+    const users = getUsers();
+
+    const highestId = users.reduce((maxId, user) => {
+        return maxId > user.id ? maxId : user.id;
+    }, 0);
+
+    return highestId + 1;
 }
 
 

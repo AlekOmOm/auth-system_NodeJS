@@ -3,16 +3,9 @@
     {
       "id": 1,
       "name": "admin",
-      "role": "admin",
-      "email": "admin@admin.com",
-      "password": "123"
-    },
-    {
-      "id": 2,
-      "name": "user",
       "role": "user",
-      "email": "user@user.com",
-      "password": "123"
+      "email": "admin@admin.com",
+      "password": "$2b$10$CL5WfvaNcaEQ2JCAjOa7beU4vTZ.hEo5Hn17WjfXgr7bDrS5Tgf7G"
     }
   ]
 }
