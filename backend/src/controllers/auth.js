@@ -24,7 +24,7 @@ import { json } from "express";
  *  - failure: returns 400 status code and message
  */
 const registerFunc = (req, res, next) => {
-    console.log("registerFunc");
+  console.log("registerFunc");
   const newUser = userService.saveUser(req, res, next);
 
   if (!newUser) {
@@ -45,34 +45,36 @@ const registerFunc = (req, res, next) => {
  * @param {*} res
  * @param {*} next
  *
- * @body 
+ * @body
  *  - name, email, password
  * @returns
  *  - success: returns 200 status code and message
  *  - failure: returns 400 status code and message
  *
  *  @note
- *  - password in db is hashed 
+ *  - password in db is hashed
  *  - password in req.body is plain text
  *  - use hashing.compare() to compare the two passwords
  */
 const loginFunc = (req, res, next) => {
-    console.log("loginFunc");
 
-    // user retrieved with hashed password
-    const user = userService.getUserByEmail(req.body.email);
+  // user retrieved with hashed password
+  const user = userService.getUserByEmail(req.body.email);
 
-    if (!user) {
-        return res.status(400).json({ message: "User not found" });
-    }
+  if (!user) {
+    return res.status(400).json({ message: "User not found" });
+  }
 
-    if (!userService.isSamePwd(req.body.password, user.password)) {
-        return res.status(400).json({ message: "Password incorrect" });
-    }
+  if (!userService.isSamePwd(req.body.password, user.password)) {
+    return res.status(400).json({ message: "Password incorrect" });
+  }
 
-    console.log("success logged in")
+  req.session.userId = user.id;
+  req.session.role = user.role;
 
+  user.password = undefined;
 
+  res.status(200).json({ message: "Logged in successfully", user: user });
 };
 
 /**
@@ -85,13 +87,23 @@ const loginFunc = (req, res, next) => {
  *  - success: returns 200 status code and message
  *  - failure: returns 400 status code and message
  */
-const logoutFunc = (req, res, next) => {};
+const logoutFunc = (req, res, next) => {
+
+
+};
+
+// ---- getCurrentUser ---
+
+const getCurrentUser = (req, res, next) => {
+//    userService.getCurrentUser(req, res, next);
+};
 
 // ---------------------
 const authService = {
   register: registerFunc,
   login: loginFunc,
   logout: logoutFunc,
+  getCurrentUser: userService.getCurrentUser,
 };
 
 // --- export ---

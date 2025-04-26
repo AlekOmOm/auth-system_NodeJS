@@ -3,6 +3,33 @@ import db from "../db/db.js";
 // --- utils ---
 import hashing from "../utils/hashing.js";
 
+
+/** --- services ---
+ *  - current user
+ *  - CRUD operations
+ *  - helper functions
+ *      - isSamePwd
+ */
+
+// --- current user ---
+
+const getCurrentUser = (req, res, next) => {
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const id = req.session.userId;
+
+    const user = getUserById(id)
+
+    if (!user) {
+        return res.status(401).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User retrieved successfully", user: user });
+
+}
+
 // --- CRUD operations ---
 const saveUser = (req, res, next) => {
   const { name, email, password } = req.body;
@@ -16,6 +43,9 @@ const saveUser = (req, res, next) => {
 
 const getUsers = (req, res, next) => {
   const users = db.getUsers();
+  users.forEach((user) => {
+    user.password = undefined; // remove password from response
+  });
   res
     .status(201)
     .json({ message: "Users retrieved successfully", user: users });
@@ -68,6 +98,7 @@ const isSamePwd = (reqPwd, dbPwd) => {
 
 // --- export ---
 const userService = {
+    getCurrentUser,
   saveUser,
   getUsers,
   getUserById,

@@ -40,7 +40,7 @@
     - [ ] (Optional) Add methods for self-service account operations (get own data, update own data, delete own account) to be called by the Account router.
     - [ ] (Optional) Add methods for admin user operations (get any user, get all users, create user, update any user, delete any user) to be called by the User router.
 
-7.  **Create Authorization Middleware (`src/middleware/authMiddleware.js` or similar):**
+7.  **Create Authorization Middleware (`src/middleware/auth.js` or similar):**
     - [ ] Create a file for authorization middleware.
     - [ ] Implement `isAuthenticated(req, res, next)`: Checks if `req.session.isLoggedIn` (or `req.session.userId`) exists. Sends 401 if not logged in.
     - [ ] Implement `isAdmin(req, res, next)`: Checks if `req.session.isLoggedIn` AND `req.session.role === 'admin'`. Sends 403 if not admin.
