@@ -71,22 +71,51 @@ app.use(generalLimiter);
 
 // --- custom middleware ---
 
-/*
- * auth routes
- * - login / register / logout
+/** --------- routes ---------
+ * @name: routes
+ * @description: routes for the api
+ * @routes:
+ *  - auth routes (user)
+ *    - login / register / logout
+ *  - account routes (logged-in user)
+ *    - get account
+ *    - update account
+ *    - delete account
+ *  - user routes (admin)
+ *    - get user
+ *    - get users
+ *    - create user
+ *    - update user
+ *    - delete user
  *
- * endpoints (fx. localhost:3001/api/auth/...):
+ * @endpoints role: user
  *  - POST /api/auth/login
  *  - POST /api/auth/register
  *  - POST /api/auth/logout
+ *
+ * @endpoints role: logged-in user
+ *  - GET /api/account/
+ *  - POST /api/account/
+ *  - PUT /api/account/
+ *  - DELETE /api/account/        - for account deletion (data and account)
+ *
+ * @endpoints role: admin
+ *  - GET /api/users/user
+ *  - GET /api/users/users
+ *  - POST /api/users/user
+ *  - PUT /api/users/user
+ *  - DELETE /api/users/user
  */
-import authRoutes from "./src/routes/auth.js";
-app.use("/api/auth", authRoutes);
+import authRoute from "./src/routes/auth.js";
+app.use("/api/auth", authRoute);
 
-import userRoutes from "./src/routes/user.js";
-app.use("/api/users", userRoutes);
+import userRoute from "./src/routes/user.js";
+app.use("/api/users", userRoute);
 
-// --- server
+import accountRoute from "./src/routes/account.js";
+app.use("/api/account", accountRoute);
+
+// --------- server ---------
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

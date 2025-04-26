@@ -1,4 +1,4 @@
-const FILE_PATH = "./db.json";
+const FILE_PATH = "./src/db/db.json";
 
 import dbJson from "./db.json" with { type: "json" };
 
@@ -41,14 +41,16 @@ function getUserByNameAndEmail(name, email) {
 function updateUser(id, user) {
   const index = users.findIndex((user) => user.id === id);
   users[index] = { ...users[index], ...user };
-    updateDb();
+  
+  updateDb();
   return users[index];
 }
 
 function deleteUser(id) {
   const index = users.findIndex((user) => user.id === id);
   users.splice(index, 1);
-    updateDb();
+  
+  updateDb();
   return true;
 }
 

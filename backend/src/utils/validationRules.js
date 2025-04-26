@@ -22,8 +22,8 @@ const PASSWORD_RULES = {
 };
 
 const FIELD_REQUIRED = (field) => {
-    return `${field} is required`;
-    }
+  return `${field} is required`;
+};
 
 export const ERROR_MESSAGES = {
   USER: {

@@ -1,5 +1,5 @@
 // --- services ---
-import userService from "./user.service.js";
+import userService from "../services/userService.js";
 
 // --- utils ---
 import hashing from "../utils/hashing.js"; // bcryptjs

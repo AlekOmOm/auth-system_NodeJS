@@ -10,6 +10,15 @@ This directory contains visual diagrams that illustrate the authentication flows
 | Login Flow | User login process | [login-flow.mmd](./login-flow.mmd) | [login-flow.svg](./login-flow.svg) |
 | Logout Flow | User logout process | [logout-flow.mmd](./logout-flow.mmd) | [logout-flow.svg](./logout-flow.svg) |
 
+Registration
+![registration-flow.svg](./registration-flow.svg)
+
+Login
+![login-flow.svg](./login-flow.svg)
+
+Logout
+![logout-flow.svg](./logout-flow.svg)
+
 ## About the Diagrams
 
 These diagrams are created using Mermaid, a markdown-based diagramming tool. Each diagram consists of:

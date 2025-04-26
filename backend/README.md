@@ -14,7 +14,10 @@ A secure, Node.js-based authentication system with user management capabilities.
 
 ## Overview
 
-This authentication system provides a secure, scalable backend for managing user authentication. Built with Node.js and Express, it implements industry best practices for user registration, login, and session management.
+auth server setup for API access to user 
+- authentication
+- authorization
+
 
 ### Technology Stack
 

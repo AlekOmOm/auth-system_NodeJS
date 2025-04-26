@@ -1,17 +1,19 @@
 import { Router } from "express";
 const router = Router();
 
-// --- services ---
-import authService from "../services/auth.service.js";
+// --- controllers ---
+import authController from "../controllers/auth.js";
+
+// --- middleware ---
+import { isAuthenticated } from "../middleware/auth.js";
 
 // --- utils ---
 import validation from "../utils/validation.js"; // types and XSS
 
 // --- routes ---
-// docs: docs/auth.routes.md
-router.post("/register", validation.register, authService.register);
-router.post("/login", validation.login, authService.login);
-router.post("/logout", validation.logout, authService.logout);
+router.post("/register", validation.register, authController.register);
+router.post("/login", validation.login, authController.login);
+router.post("/logout", validation.logout, authController.logout);
 
 // --- export ---
 export default router;

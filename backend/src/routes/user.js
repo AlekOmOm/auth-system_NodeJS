@@ -3,7 +3,7 @@ import Router from "express";
 const router = Router();
 
 // --- services ---
-import userService from "../services/user.service.js";
+import userService from "../services/userService.js";
 
 // --- routes ---
 router.get("/", userService.getUsers);
