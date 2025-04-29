@@ -4,8 +4,14 @@
       "id": 1,
       "name": "admin",
       "role": "user",
-      "email": "admin@admin.com",
-      "password": "$2b$10$CL5WfvaNcaEQ2JCAjOa7beU4vTZ.hEo5Hn17WjfXgr7bDrS5Tgf7G"
+      "email": "admin@admin.com"
+    },
+    {
+      "id": 2,
+      "name": "test",
+      "role": "user",
+      "email": "test@test.com",
+      "password": "$2b$10$ooRtrV/yNHPI7gDb4sYpeumbL.V/P.LbaoY0XXMAJNOgrWSMfmZta"
     }
   ]
 }

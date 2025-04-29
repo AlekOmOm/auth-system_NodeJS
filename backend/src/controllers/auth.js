@@ -89,6 +89,17 @@ const loginFunc = (req, res, next) => {
  */
 const logoutFunc = (req, res, next) => {
 
+  if (!req.session) {
+    return res.status(400).json({ message: "No active session found" });
+  }
+  
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Could not logout, please try again" });
+    }
+    
+    return res.status(200).json({ message: "Logged out successfully" });
+  });
 
 };
 

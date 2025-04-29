@@ -1,9 +1,6 @@
 import express from "express";
 const app = express();
 
-import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
-
 // --- environment variables ---
 const PORT = process.env.BACKEND_PORT || 3001;
 const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
@@ -21,6 +18,9 @@ const RATE_LIMIT_LIMIT = process.env.RATE_LIMIT_LIMIT || 300;
  * - rate limit
  */
 
+import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
+
 app.use(express.json());
 
 /*
@@ -31,10 +31,7 @@ app.use(express.json());
 import cors from "cors";
 app.use(
   cors({
-    origin: [
-      `http://localhost:${FRONTEND_PORT}` || "http://localhost:3000",
-      `http://localhost:5173`,
-    ],
+    origin: `http://localhost:${FRONTEND_PORT}` || "http://localhost:3000",
     credentials: true,
   })
 );

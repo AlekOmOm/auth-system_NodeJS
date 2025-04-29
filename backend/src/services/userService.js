@@ -3,7 +3,6 @@ import db from "../db/db.js";
 // --- utils ---
 import hashing from "../utils/hashing.js";
 
-
 /** --- services ---
  *  - current user
  *  - CRUD operations
@@ -14,27 +13,26 @@ import hashing from "../utils/hashing.js";
 // --- current user ---
 
 const getCurrentUser = (req, res, next) => {
-    if (!req.session || !req.session.userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-    const id = req.session.userId;
+  const id = req.session.userId;
 
-    const user = getUserById(id)
+  const user = getUserById(id);
 
-    if (!user) {
-        return res.status(401).json({ message: "User not found" });
-    }
+  if (!user) {
+    return res.status(401).json({ message: "User not found" });
+  }
 
-    res.status(200).json({ message: "User retrieved successfully", user: user });
-
-}
+  res.status(200).json({ message: "User retrieved successfully", user: user });
+};
 
 // --- CRUD operations ---
 const saveUser = (req, res, next) => {
   const { name, email, password } = req.body;
   const hashedPassword = hashing.hash(password);
-    const role = "user"; // default role
+  const role = "user"; // default role
   const user = { name, role, email, password: hashedPassword };
   const newUser = db.createUser(user);
 
@@ -48,7 +46,7 @@ const getUsers = (req, res, next) => {
   });
   res
     .status(201)
-    .json({ message: "Users retrieved successfully", user: users });
+    .json({ message: "Users retrieved successfully", users: users });
 };
 
 const getUserById = (req, res, next) => {
@@ -87,18 +85,23 @@ const updateUser = (req, res, next) => {
 // --- password compare ---
 
 const isSamePwd = (reqPwd, dbPwd) => {
+  // Check if either password is undefined or null
+  if (!reqPwd || !dbPwd) {
+    return false;
+  }
+
+  try {
     const isMatch = hashing.compare(reqPwd, dbPwd);
-    if (!isMatch) {
-        return false;
-    }
-    return true;
-}
-
-
+    return isMatch;
+  } catch (error) {
+    console.error("Password comparison error:", error.message);
+    return false;
+  }
+};
 
 // --- export ---
 const userService = {
-    getCurrentUser,
+  getCurrentUser,
   saveUser,
   getUsers,
   getUserById,
