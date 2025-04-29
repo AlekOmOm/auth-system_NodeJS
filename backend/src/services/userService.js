@@ -60,25 +60,73 @@ const getUserByEmail = (email) => {
 };
 
 const getUserByNameAndEmail = (req, res, next) => {
-  let { name, email } = "";
-  if (req.params === None && req.body.data !== None) {
-    name = req.body.data.name;
-    email = req.body.data.email;
+  let name = "";
+  let email = "";
+
+  // Check if values are in params or body
+  if (req.params && req.params.name && req.params.email) {
+    name = req.params.name;
+    email = req.params.email;
+  } else if (req.body && req.body.data) {
+    name = req.body.data.name || "";
+    email = req.body.data.email || "";
+  }
+
+  // Validation
+  if (!name || !email) {
+    return res.status(400).json({ message: "Name and email are required" });
   }
 
   const user = db.getUserByNameAndEmail(name, email);
-  return user;
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Remove password for security
+  if (user.password) {
+    user.password = undefined;
+  }
+
+  return res.status(200).json({
+    message: "User retrieved successfully",
+    user,
+  });
 };
 
 const updateUser = (req, res, next) => {
   const { id } = req.params;
   const { name, role, email, password } = req.body;
-  const hashedPassword = password; // TODO: hash password
-  const user = db.updateUser(id, {
+
+  // Create update object
+  const updateData = {
     name,
     role,
     email,
-    password: hashedPassword,
+  };
+
+  // Only hash and update password if a new one is provided
+  if (password) {
+    updateData.password = hashing.hash(password);
+  }
+
+  // Update the user
+  const user = db.updateUser(id, updateData);
+
+  // Check if user was updated successfully
+  if (!user) {
+    return res.status(404).json({ message: "User not found or update failed" });
+  }
+
+  // Remove password from response
+  if (user.password) {
+    user.password = undefined;
+  }
+
+  // Return success response
+  return res.status(200).json({
+    message: "User updated successfully",
+    user,
   });
 };
 

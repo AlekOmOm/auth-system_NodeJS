@@ -42,7 +42,13 @@ const register = [
     .withMessage(rules.ERROR_MESSAGES.PASSWORD.WEAK_PASSWORD) // Use the corrected message key
     .isLength({ max: rules.PASSWORD_RULES.MAX_LENGTH })
     .withMessage(rules.ERROR_MESSAGES.PASSWORD.MAX_LENGTH_ERROR)
-    .isStrongPassword()
+    .isStrongPassword({
+      minLength: rules.PASSWORD_RULES.MIN_LENGTH,
+      minLowercase: rules.PASSWORD_RULES.LOWER_CASE,
+      minUppercase: rules.PASSWORD_RULES.UPPER_CASE,
+      minNumbers: rules.PASSWORD_RULES.DIGIT,
+      minSymbols: 1,
+    })
     .withMessage(rules.ERROR_MESSAGES.PASSWORD.WEAK_PASSWORD),
 
   (req, res, next) => {
@@ -61,23 +67,40 @@ const register = [
  * - password min length
  */
 const login = [
-  body("email").isEmail().withMessage(rules.ERROR_MESSAGES.USER.INVALID_EMAIL),
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage(rules.ERROR_MESSAGES.USER.FIELD_REQUIRED("Email"))
+    .isEmail()
+    .withMessage(rules.ERROR_MESSAGES.EMAIL.INVALID_EMAIL)
+    .normalizeEmail(),
   body("password")
-    .isLength({ min: rules.MIN_PASSWORD_LENGTH })
-    .withMessage(rules.ERROR_MESSAGES.USER.INVALID_PASSWORD),
+    .trim()
+    .notEmpty()
+    .withMessage(rules.ERROR_MESSAGES.USER.FIELD_REQUIRED("Password"))
+    .isLength({ min: rules.PASSWORD_RULES.MIN_LENGTH })
+    .withMessage(rules.ERROR_MESSAGES.PASSWORD.WEAK_PASSWORD),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  },
 ];
 
 /*
  * logout
- * - validate logout details
- * - is email
- * - password min length
+ * - No validation needed for logout as it only depends on the session
+ * - We only need to check if the session exists, which is handled by middleware
+ * - TODO: No input fields are required for logout, so this should just pass through
  */
 const logout = [
-  body("email").isEmail().withMessage(rules.ERROR_MESSAGES.USER.INVALID_EMAIL),
-  body("password")
-    .isLength({ min: rules.MIN_PASSWORD_LENGTH })
-    .withMessage(rules.ERROR_MESSAGES.USER.INVALID_PASSWORD),
+  // No validation needed for logout - just pass to next middleware
+  (req, res, next) => {
+    next();
+  },
 ];
 
 // --- export ---

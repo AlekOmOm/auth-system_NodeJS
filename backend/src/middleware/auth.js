@@ -1,5 +1,16 @@
+/**
+ * @description Middleware to check if a user is authenticated
+ * @param {*} req - Express request object
+ * @param {*} res - Express response object
+ * @param {*} next - Express next function
+ * @returns
+ * - success: calls next()
+ * - failure: returns 401 with 'Authentication required' message
+ */
 export function isAuthenticated(req, res, next) {
-  checkSession(req, res, next);
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
 
   next();
 }
@@ -46,9 +57,16 @@ export function isAdmin(req, res, next) {
   next();
 }
 
+/**
+ * @description middleware to check if user has a specific role
+ * @param {string} role - The role to check for
+ * @returns {function} - Express middleware function
+ */
 export function hasRole(role) {
   return (req, res, next) => {
-    isAuthenticated(req, res, next);
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
 
     if (req.session.role !== role && req.session.role !== "admin") {
       return res.status(401).json({ message: "Insufficient permissions" });
@@ -56,13 +74,6 @@ export function hasRole(role) {
 
     next();
   };
-}
-
-// ---------------------
-async function checkSession(req, res, next) {
-  if (!req.session || !req.session.userId) {
-    return res.status(401).json({ message: "Authentication required" });
-  }
 }
 
 // ---- export ----

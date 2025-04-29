@@ -1,4 +1,4 @@
-import userService from "./userService.js";
+import userService from "../services/userService.js";
 import hashing from "../utils/hashing.js";
 
 // Mock the hashing utility

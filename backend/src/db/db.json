@@ -12,6 +12,13 @@
       "role": "user",
       "email": "test@test.com",
       "password": "$2b$10$ooRtrV/yNHPI7gDb4sYpeumbL.V/P.LbaoY0XXMAJNOgrWSMfmZta"
+    },
+    {
+      "id": 3,
+      "name": "1",
+      "role": "user",
+      "email": "1@1.com",
+      "password": "$2b$10$c/Rjy/trVDdEzbEfmazbau5uLhF5yqa/zYBxZjvukTrX8rzlcoRBy"
     }
   ]
 }

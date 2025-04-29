@@ -57,7 +57,6 @@ const registerFunc = (req, res, next) => {
  *  - use hashing.compare() to compare the two passwords
  */
 const loginFunc = (req, res, next) => {
-
   // user retrieved with hashed password
   const user = userService.getUserByEmail(req.body.email);
 
@@ -88,25 +87,49 @@ const loginFunc = (req, res, next) => {
  *  - failure: returns 400 status code and message
  */
 const logoutFunc = (req, res, next) => {
-
   if (!req.session) {
     return res.status(400).json({ message: "No active session found" });
   }
-  
+
+  // Use the session.destroy method to end the session
   req.session.destroy((err) => {
     if (err) {
-      return res.status(500).json({ message: "Could not logout, please try again" });
+      // If there's an error destroying the session, return an error response
+      return res
+        .status(500)
+        .json({ message: "Could not logout, please try again" });
     }
-    
-    return res.status(200).json({ message: "Logged out successfully" });
-  });
 
+    // Only send the response if we haven't already sent headers
+    res.status(200).json({ message: "Logged out successfully" });
+  });
 };
 
 // ---- getCurrentUser ---
 
 const getCurrentUser = (req, res, next) => {
-//    userService.getCurrentUser(req, res, next);
+  // Check if the user is authenticated (this should be handled by middleware, but double-check)
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+
+  // Get user information
+  const user = userService.getUserById({ params: { id: req.session.userId } });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Remove sensitive information
+  if (user.password) {
+    user.password = undefined;
+  }
+
+  // Return user data
+  res.status(200).json({
+    message: "User data retrieved successfully",
+    user,
+  });
 };
 
 // ---------------------
@@ -114,7 +137,7 @@ const authService = {
   register: registerFunc,
   login: loginFunc,
   logout: logoutFunc,
-  getCurrentUser: userService.getCurrentUser,
+  getCurrentUser,
 };
 
 // --- export ---

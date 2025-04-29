@@ -1,4 +1,4 @@
-import hashing from "./hashing.js";
+import hashing from "../utils/hashing.js";
 
 // Test suite for hashing utility
 describe("Hashing Utility", () => {

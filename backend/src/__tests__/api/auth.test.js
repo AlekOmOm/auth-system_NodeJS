@@ -1,50 +1,82 @@
+import { jest, describe, beforeEach, test, expect } from "@jest/globals";
 import request from "supertest";
 import express from "express";
+import session from "express-session";
 import authRoutes from "../../routes/auth.js";
-import authController from "../../controllers/auth.js";
-import userService from "../../services/userService.js";
-import db from "../../db/db.js";
+import * as authControllerModule from "../../controllers/auth.js";
 
-// Mock dependencies
-jest.mock("../../controllers/auth.js");
-jest.mock("../../services/userService.js");
-jest.mock("../../db/db.js");
-jest.mock("../../middleware/auth.js", () => ({
-  isAuthenticated: jest.fn((req, res, next) => next()),
-  isNotAdmin: jest.fn((req, res, next) => next()),
-  isAdmin: jest.fn((req, res, next) => next()),
+// Create a spy for the auth controller
+const registerMock = jest.fn((req, res) => {
+  res.status(201).json({ message: "User registered successfully" });
+});
+
+const loginMock = jest.fn((req, res) => {
+  req.session.userId = "1";
+  req.session.role = "user";
+  res.status(200).json({ message: "Logged in successfully" });
+});
+
+const logoutMock = jest.fn((req, res) => {
+  if (req.session) {
+    req.session.destroy = jest.fn((cb) => cb());
+  }
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
+const getCurrentUserMock = jest.fn((req, res) => {
+  res.status(200).json({ message: "User data retrieved successfully" });
+});
+
+// Mock the auth controller
+jest.mock("../../controllers/auth.js", () => ({
+  default: {
+    register: registerMock,
+    login: loginMock,
+    logout: logoutMock,
+    getCurrentUser: getCurrentUserMock,
+  },
 }));
+
+// Mock middleware
+jest.mock("../../middleware/auth.js", () => ({
+  isAuthenticated: (req, res, next) => {
+    if (!req.session || !req.session.userId) {
+      req.session = { userId: "1", role: "user" };
+    }
+    next();
+  },
+  isNotAdmin: (req, res, next) => next(),
+  isAdmin: (req, res, next) => next(),
+}));
+
+// Mock validation
 jest.mock("../../utils/validation.js", () => ({
-  register: jest.fn((req, res, next) => next()),
-  login: jest.fn((req, res, next) => next()),
-  logout: jest.fn((req, res, next) => next()),
+  register: (req, res, next) => next(),
+  login: (req, res, next) => next(),
+  logout: (req, res, next) => next(),
 }));
 
 // Setup test app
 const app = express();
 app.use(express.json());
+app.use(
+  session({
+    secret: "test-secret",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 app.use("/api/auth", authRoutes);
 
 describe("Auth Routes", () => {
+  let authController;
+
   beforeEach(() => {
+    // Access the mocked controller
+    authController = authControllerModule.default;
+
+    // Clear mocks
     jest.clearAllMocks();
-
-    // Mock controller functions
-    authController.register.mockImplementation((req, res) => {
-      res.status(201).json({ message: "User registered successfully" });
-    });
-
-    authController.login.mockImplementation((req, res) => {
-      res.status(200).json({ message: "Logged in successfully" });
-    });
-
-    authController.logout.mockImplementation((req, res) => {
-      res.status(200).json({ message: "Logged out successfully" });
-    });
-
-    authController.getCurrentUser.mockImplementation((req, res) => {
-      res.status(200).json({ message: "User data retrieved successfully" });
-    });
   });
 
   describe("POST /api/auth/register", () => {
@@ -60,14 +92,13 @@ describe("Auth Routes", () => {
         "message",
         "User registered successfully"
       );
-      expect(authController.register).toHaveBeenCalled();
+      expect(registerMock).toHaveBeenCalled();
     });
 
     test("should validate registration input", async () => {
-      // This test verifies that validation middleware is called
       await request(app).post("/api/auth/register").send({});
 
-      expect(authController.register).toHaveBeenCalled();
+      expect(registerMock).toHaveBeenCalled();
     });
   });
 
@@ -80,52 +111,73 @@ describe("Auth Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("message", "Logged in successfully");
-      expect(authController.login).toHaveBeenCalled();
+      expect(loginMock).toHaveBeenCalled();
     });
 
     test("should validate login input", async () => {
       await request(app).post("/api/auth/login").send({});
 
-      expect(authController.login).toHaveBeenCalled();
+      expect(loginMock).toHaveBeenCalled();
     });
   });
 
   describe("POST /api/auth/logout", () => {
     test("should logout a user successfully", async () => {
-      const response = await request(app).post("/api/auth/logout");
+      // Set a session cookie
+      const agent = request.agent(app);
+      await agent.post("/api/auth/login").send({
+        email: "test@example.com",
+        password: "password123",
+      });
+
+      const response = await agent.post("/api/auth/logout");
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty(
         "message",
         "Logged out successfully"
       );
-      expect(authController.logout).toHaveBeenCalled();
+      expect(logoutMock).toHaveBeenCalled();
     });
   });
 
   describe("GET /api/auth/me", () => {
     test("should get current user data", async () => {
-      const response = await request(app).get("/api/auth/me");
+      // Set a session cookie
+      const agent = request.agent(app);
+      await agent.post("/api/auth/login").send({
+        email: "test@example.com",
+        password: "password123",
+      });
+
+      const response = await agent.get("/api/auth/me");
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty(
         "message",
         "User data retrieved successfully"
       );
-      expect(authController.getCurrentUser).toHaveBeenCalled();
+      expect(getCurrentUserMock).toHaveBeenCalled();
     });
   });
 
   describe("GET /api/auth/admin", () => {
     test("should get admin data", async () => {
-      const response = await request(app).get("/api/auth/admin");
+      // Set a session cookie with admin role
+      const agent = request.agent(app);
+      await agent.post("/api/auth/login").send({
+        email: "admin@example.com",
+        password: "password123",
+      });
+
+      const response = await agent.get("/api/auth/admin");
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty(
         "message",
         "User data retrieved successfully"
       );
-      expect(authController.getCurrentUser).toHaveBeenCalled();
+      expect(getCurrentUserMock).toHaveBeenCalled();
     });
   });
 });

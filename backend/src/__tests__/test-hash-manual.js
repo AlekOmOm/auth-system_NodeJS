@@ -1,4 +1,4 @@
-import hashing from "./hashing.js";
+import hashing from "../utils/hashing.js";
 
 /**
  * Manual test script for password hashing and comparison
