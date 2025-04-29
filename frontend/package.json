@@ -1,20 +1,23 @@
 {
-  "name": "login-signup-svelte",
+  "name": "login-register-svelte",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "node tests/run-tests.js"
+    "start": "cross-env NODE_ENV=production vite build && npx serve dist",
+    "start:dev": "cross-env NODE_ENV=development vite build && npx serve dist",
+    "dev": "cross-env NODE_ENV=development vite",
+    "build": "cross-env NODE_ENV=production vite build",
+    "preview": "cross-env NODE_ENV=production vite preview"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "svelte": "^5.20.2",
-    "vite": "^6.2.0"
+    "cross-env": "^7.0.3",
+    "svelte": "^5.23.1",
+    "vite": "^6.3.1"
   },
   "dependencies": {
+    "node-fetch": "^3.3.2",
     "svelte-routing": "^2.13.0"
   }
 }

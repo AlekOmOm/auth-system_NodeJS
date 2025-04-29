@@ -1,26 +1,39 @@
-// frontend/vite.config.js
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import path from "path";
+import { resolve } from "path";
 
-export default defineConfig(({ mode }) => {
-  // Load env file from parent directory
-  const parentEnv = loadEnv(mode, path.resolve(__dirname, ".."), "");
+// Load env variables
+const isProd = process.env.NODE_ENV === "production";
 
-  return {
-    plugins: [svelte()],
-    server: {
-      port: parseInt(parentEnv.FRONTEND_PORT) || 3000,
-    },
-    define: {
-      // Make env variables available to your app
-      "import.meta.env.BACKEND_URL": JSON.stringify(
-        // BACKEND_HOST + BACKEND_PORT
-        `http://${parentEnv.BACKEND_HOST}:${parentEnv.BACKEND_PORT}/api`
-      ),
-      "import.meta.env.FRONTEND_PORT": JSON.stringify(
-        parentEnv.FRONTEND_PORT || 3000
-      ),
-    },
-  };
+const frontendPort = isProd
+  ? process.env.PROD_FRONTEND_PORT || 3000
+  : process.env.DEV_FRONTEND_PORT || 3000;
+
+const frontendHost = isProd
+  ? process.env.PROD_FRONTEND_HOST || "localhost"
+  : process.env.DEV_FRONTEND_HOST || "localhost";
+
+const backendPort = isProd
+  ? process.env.PROD_BACKEND_PORT || 3001
+  : process.env.DEV_BACKEND_PORT || 3001;
+
+const backendHost = isProd
+  ? process.env.PROD_BACKEND_HOST || "localhost"
+  : process.env.DEV_BACKEND_HOST || "localhost";
+
+const apiUrl = isProd
+  ? `http://${backendHost}:${backendPort}/api`
+  : `http://${backendHost}:${backendPort}/api`;
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [svelte()],
+  envDir: resolve(__dirname, ".."),
+  server: {
+    port: frontendPort,
+    host: frontendHost,
+  },
+  define: {
+    "import.meta.env.VITE_API_URL": JSON.stringify(apiUrl),
+  },
 });
