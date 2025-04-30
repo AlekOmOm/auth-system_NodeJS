@@ -21,6 +21,8 @@ export const PASSWORD_RULES = {
   DIGIT: 1,
 };
 
+export const MIN_PASSWORD_LENGTH = 8;
+
 export const FIELD_REQUIRED = (field) => {
   return `${field} is required`;
 };
@@ -43,6 +45,8 @@ export const ERROR_MESSAGES = {
     INVALID_CREDENTIALS: "Invalid credentials",
     REQUIRED_FIELDS: "Required fields are missing",
     FIELD_REQUIRED: FIELD_REQUIRED,
+    INVALID_EMAIL: "Email must be a valid email address",
+    INVALID_PASSWORD: "Password must be at least 8 characters long",
   },
   SESSION: {
     INVALID_SESSION: "Invalid session",

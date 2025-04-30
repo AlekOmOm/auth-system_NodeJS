@@ -1,0 +1,40 @@
+/* Import shared styles */
+@import "./shared.css";
+
+/* Signup-specific styles */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-agree {
+  margin-bottom: 2vh;
+}
+
+.agree-terms {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 1.4vh;
+  line-height: 1.4;
+}
+
+.agree-terms input {
+  margin-right: 0.8vh;
+  margin-top: 0.3vh;
+  accent-color: #a777e3;
+}
+
+.agree-terms span {
+  color: #4b5563;
+}
+
+.agree-terms a {
+  color: #a777e3;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.agree-terms a:hover {
+  text-decoration: underline;
+}

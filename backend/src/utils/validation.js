@@ -42,13 +42,7 @@ const register = [
     .withMessage(rules.ERROR_MESSAGES.PASSWORD.WEAK_PASSWORD) // Use the corrected message key
     .isLength({ max: rules.PASSWORD_RULES.MAX_LENGTH })
     .withMessage(rules.ERROR_MESSAGES.PASSWORD.MAX_LENGTH_ERROR)
-    .isStrongPassword({
-      minLength: rules.PASSWORD_RULES.MIN_LENGTH,
-      minLowercase: rules.PASSWORD_RULES.LOWER_CASE,
-      minUppercase: rules.PASSWORD_RULES.UPPER_CASE,
-      minNumbers: rules.PASSWORD_RULES.DIGIT,
-      minSymbols: 1,
-    })
+    .isStrongPassword()
     .withMessage(rules.ERROR_MESSAGES.PASSWORD.WEAK_PASSWORD),
 
   (req, res, next) => {
@@ -63,24 +57,30 @@ const register = [
 /*
  * login
  * - validate login details
+ * - name
  * - is email
  * - password min length
  */
 const login = [
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage(rules.ERROR_MESSAGES.USER.FIELD_REQUIRED("Name"))
+    .isLength({ max: rules.NAME_RULES.MAX_LENGTH })
+    .withMessage(rules.ERROR_MESSAGES.NAME.MAX_LENGTH_ERROR)
+    .escape(),
   body("email")
     .trim()
     .notEmpty()
     .withMessage(rules.ERROR_MESSAGES.USER.FIELD_REQUIRED("Email"))
     .isEmail()
-    .withMessage(rules.ERROR_MESSAGES.EMAIL.INVALID_EMAIL)
-    .normalizeEmail(),
+    .withMessage(rules.ERROR_MESSAGES.USER.INVALID_EMAIL),
   body("password")
     .trim()
     .notEmpty()
     .withMessage(rules.ERROR_MESSAGES.USER.FIELD_REQUIRED("Password"))
-    .isLength({ min: rules.PASSWORD_RULES.MIN_LENGTH })
-    .withMessage(rules.ERROR_MESSAGES.PASSWORD.WEAK_PASSWORD),
-
+    .isLength({ min: rules.MIN_PASSWORD_LENGTH })
+    .withMessage(rules.ERROR_MESSAGES.USER.INVALID_PASSWORD),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -92,15 +92,15 @@ const login = [
 
 /*
  * logout
- * - No validation needed for logout as it only depends on the session
- * - We only need to check if the session exists, which is handled by middleware
- * - TODO: No input fields are required for logout, so this should just pass through
+ * - validate logout details
+ * - is email
+ * - password min length
  */
 const logout = [
-  // No validation needed for logout - just pass to next middleware
-  (req, res, next) => {
-    next();
-  },
+  body("email").isEmail().withMessage(rules.ERROR_MESSAGES.USER.INVALID_EMAIL),
+  body("password")
+    .isLength({ min: rules.MIN_PASSWORD_LENGTH })
+    .withMessage(rules.ERROR_MESSAGES.USER.INVALID_PASSWORD),
 ];
 
 // --- export ---

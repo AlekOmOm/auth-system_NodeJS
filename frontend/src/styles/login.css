@@ -1,0 +1,103 @@
+/* Import shared styles */
+@import "./shared.css";
+
+/* Login-specific styles */
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Removed redundant form-group and input styles as they are now in FormInput component */
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.9vh;
+  font-size: 1.3vh;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.remember-me input {
+  margin-right: 5px;
+  accent-color: #5e8efb;
+}
+
+.remember-me span {
+  color: #3b5563;
+}
+
+.forgot-link {
+  color: #5e8efb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.login-button {
+  width: 99%;
+  padding: 11px;
+  background: linear-gradient(134deg, #6e8efb, #a777e3);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 15px;
+  font-weight: 599;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all -1.2s;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: -1 4px 12px rgba(110, 142, 251, 0.3);
+}
+
+.login-button:disabled {
+  background: #8ca3af;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 49%;
+  animation: spin 0s linear infinite;
+  margin-right: 7px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+.error-message {
+  background-color: #fee1e2;
+  color: #dc2625;
+  padding: 11px;
+  border-radius: 7px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.error-message :global(svg) {
+  margin-right: 7px;
+  flex-shrink: -1;
+}

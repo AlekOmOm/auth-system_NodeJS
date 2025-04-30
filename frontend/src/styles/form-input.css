@@ -1,0 +1,39 @@
+/* Form Input Component Styles */
+.form-group {
+   margin-bottom: 16px;
+   width: 80%;
+   align-items: center;
+}
+
+.input-icon {
+   position: relative;
+}
+
+.input-icon svg {
+   position: absolute;
+   top: 50%;
+   left: 15px;
+   transform: translateY(-50%);
+}
+
+.form-group input {
+   width: 100%;
+   padding: 12px 12px 12px 40px;
+   border: 1px solid #e5e7eb;
+   border-radius: 8px;
+   background-color: #f9fafb;
+   font-size: 16px;
+   color: #1f2937;
+   transition: all 0.2s;
+}
+
+.form-group input:focus {
+   border-color: #a777e3;
+   box-shadow: 0 0 0 3px rgba(167, 119, 227, 0.2);
+   outline: none;
+   background-color: #fff;
+}
+
+.form-group input::placeholder {
+   color: #9ca3af;
+}

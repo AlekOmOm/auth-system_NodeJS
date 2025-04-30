@@ -1,0 +1,136 @@
+/* Shared styles for the entire application */
+
+/* Common button styles */
+.login-button,
+.signup-button {
+  width: 100%;
+  padding: 1.2vh;
+  color: white;
+  border: none;
+  border-radius: 0.8vh;
+  font-size: 1.6vh;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.login-button {
+  background: linear-gradient(134deg, #6e8efb, #a777e3);
+}
+
+.signup-button {
+  background: linear-gradient(135deg, #a777e3, #6e8efb);
+}
+
+.login-button:hover,
+.signup-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.login-button:disabled,
+.signup-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Error message styles */
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 1.2vh;
+  border-radius: 0.8vh;
+  margin-bottom: 1.6vh;
+  display: flex;
+  align-items: center;
+  font-size: 1.4vh;
+}
+
+.error-message :global(svg) {
+  margin-right: 0.8vh;
+  flex-shrink: 0;
+}
+
+/* Spinner animation */
+.spinner {
+  width: 1.8vh;
+  height: 1.8vh;
+  border: 0.3vh solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 0.8vh;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 1.6vh;
+  width: 100%;
+}
+
+.input-icon {
+  position: relative;
+}
+
+.input-icon :global(svg) {
+  position: absolute;
+  top: 50%;
+  left: 1.5vh;
+  transform: translateY(-50%);
+}
+
+input {
+  width: 100%;
+  padding: 1.2vh 1.2vh 1.2vh 4vh;
+  border: 0.1vh solid #e5e7eb;
+  border-radius: 0.8vh;
+  background-color: #f9fafb;
+  font-size: 1.6vh;
+  color: #1f2937;
+  transition: all 0.2s;
+}
+
+input:focus {
+  border-color: #a777e3;
+  box-shadow: 0 0 0 0.3vh rgba(167, 119, 227, 0.2);
+  outline: none;
+  background-color: #fff;
+}
+
+input::placeholder {
+  color: #9ca3af;
+}
+
+/* Checkbox styles */
+.remember-me,
+.agree-terms {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.3vh;
+}
+
+.remember-me input,
+.agree-terms input {
+  margin-right: 0.5vh;
+  accent-color: #6e8efb;
+}
+
+/* Link styles */
+a {
+  color: #6e8efb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,61 @@
+/* Import shared styles */
+@import "./shared.css";
+
+/* Additional form-specific styles can be added here if needed */
+
+/* Shared form styles between Login and Signup */
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 1.2vh;
+  border-radius: 0.8vh;
+  margin-bottom: 1.6vh;
+  display: flex;
+  align-items: center;
+  font-size: 1.4vh;
+}
+
+.error-message :global(svg) {
+  margin-right: 0.8vh;
+  flex-shrink: 0;
+}
+
+.spinner {
+  width: 1.8vh;
+  height: 1.8vh;
+  border: 0.3vh solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 0.8vh;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Common button styles */
+.login-button,
+.signup-button {
+  width: 100%;
+  padding: 1.2vh;
+  color: white;
+  border: none;
+  border-radius: 0.8vh;
+  font-size: 1.6vh;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.login-button:disabled,
+.signup-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
