@@ -4,7 +4,7 @@ import { open } from "sqlite";
 const API_KEY = "123";
 const SECRET = "123";
 
-// test2
+// test22
 // db path: db\auth.db
 // current path: backend\src\db\connection.js
 
