@@ -1,0 +1,47 @@
+# Auth Integration Tests TODO
+
+## Observations from Test Results
+1. ✅ Environment variable VITE_BACKEND_URL is undefined in tests - Fixed with vi.stubEnv
+2. ✅ The structure of mock users in tests doesn't match actual API response - Fixed with updated mock data
+3. ✅ Both fetch implementations now work in tests - Fixed with proper mocking
+4. ✅ Missing proper error handling for authentication errors in login/register functions - Fixed with try/catch
+5. ✅ Test for 'should handle API errors' had issues - Fixed with better assertions
+
+## Improvements Made
+1. ✅ Added proper environment variable handling in tests with vi.stubEnv
+2. ✅ Unified user object structure between tests and API
+3. ✅ Added better error handling for non-JSON responses in fetch.js
+4. ✅ Implemented proper error handling in auth functions (now returns success: false for errors)
+5. ✅ Added validation for user input in auth functions
+6. ✅ Added more comprehensive tests for auth functions (including validation tests)
+7. ✅ Added JSDoc documentation to functions
+
+## Remaining Work
+1. Add proper integration test for .env files and configuration
+2. Add response type checks or interfaces for API responses
+3. Consider adding handling for timeout errors
+4. Add end-to-end tests for the full authentication flow
+5. Implement proper loading and error state handling in UI components
+6. Add more comprehensive input validation (e.g., password strength, email format)
+
+## Browser Issue Fix
+The issue in the browser was due to:
+1. VITE_BACKEND_URL environment variable not being set correctly
+2. The fetch utility not handling non-JSON responses properly
+3. Lack of proper error handling in auth functions
+
+Fixed by:
+1. Added default backend URL in authApi.js
+2. Improved error handling in fetch utilities
+3. Added proper try/catch blocks in auth functions
+
+## Final Test Report
+✅ All 15 tests now pass successfully:
+- 7 Tests for fetch utilities (fetchGet, fetchPost)
+- 8 Tests for auth API (testApi, register, login)
+
+## Next Steps for Production
+1. Create a .env file at the frontend root with: VITE_BACKEND_URL=http://localhost:3001/api
+2. Consider using a .env.example file to document required environment variables
+3. Implement the remaining work items from above list
+4. Consider adding additional tests for edge cases

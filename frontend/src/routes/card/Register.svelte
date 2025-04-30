@@ -1,13 +1,14 @@
 <script>
   import { navigate, Route, Link } from 'svelte-routing';
   import authApi from '../../services/authApi.js'
+  import ErrorMessage from '../../components/ErrorMessage.svelte';
 
   let name = '';
   let email = '';
   let password = '';
-  let errorMessage = '';
+  let errorMessages = [];
 
-  async function register() {
+  async function register(event) {
     event.preventDefault();
 
     const credentials = {
@@ -16,18 +17,26 @@
       password: password.trim()
     }
 
+    errorMessages = [];
+
     try {
       const response = await authApi.register(credentials);
 
       if(response.success) {
-        navigate('/home');
+        navigate('/');
       } else {
-        errorMessage = response.message;
+        if (response.errors && Array.isArray(response.errors)) {
+          errorMessages = response.errors.map(err => err.msg);
+        } else if (response.message) {
+          errorMessages = [response.message];
+        } else {
+          errorMessages = ['Registration failed. Please try again.'];
+        }
       }
 
     } catch (error) {
       console.error('Register failed:', error);
-      errorMessage = 'Register failed. Please check your credentials and try again.';
+      errorMessages = ['An unexpected error occurred. Please try again later.'];
     }
   }
 </script>
@@ -38,21 +47,23 @@
 
 
   <form onsubmit={register}>
-      <input id="name" bind:value={name} name="name" placeholder="name"  required/>
-      <input id="email" bind:value={email} name="email" placeholder="email" required/>
-      <input id="password" bind:value={password} name="password" type="password" placeholder="password" required/>
+      <input id="name" bind:value={name} name="name" placeholder="name"  required autocomplete="name"/>
+      <input id="email" bind:value={email} name="email" placeholder="email" required autocomplete="email"/>
+      <input id="password" bind:value={password} name="password" type="password" placeholder="password" required autocomplete="new-password"/>
       
           
-      {#if errorMessage}
-        <p class="error-message">{errorMessage}</p>
+      {#if errorMessages.length > 0}
+        <ErrorMessage errors={errorMessages} />
       {/if}
 
-      <button onclick={register}>register</button>
+      <button type="submit">register</button>
   </form>
 
   <nav>
     <p>already have an account?</p>
-    <Link to="/login">login</Link>
+    <a href="/login" onclick={(event) => { event.preventDefault(); navigate('/login'); }}>
+      login
+    </a>
   </nav>
 
 </div>
