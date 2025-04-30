@@ -6,7 +6,7 @@
     import Footer from './components/Footer.svelte'
     import ProtectedRoute from './components/ProtectedRoute.svelte';
     import UnAuthenticatedRoute from './components/UnAuthenticatedRoute.svelte';
-    
+
     // routes
     import Home from './routes/home/Home.svelte'
     import Register from './routes/card/Register.svelte'
@@ -40,12 +40,11 @@
 <style>
   .page {
     display: grid;
-    grid-template-rows: auto 1fr auto; /* header | main | footer */
+    grid-template-rows: auto 1fr auto; 
     height: 100%;
   }
-
   .content {
-    display: flex;             /* or grid; your choice */
+    display: flex;             
     flex-direction: column;
     justify-content: center;
     align-items:   center;
