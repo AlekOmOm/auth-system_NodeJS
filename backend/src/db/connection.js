@@ -1,9 +1,9 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = "process.env.API_KEY;";
 
-//
+// test
 // db path: db\auth.db
 // current path: backend\src\db\connection.js
 
