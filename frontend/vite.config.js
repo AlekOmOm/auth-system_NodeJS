@@ -32,7 +32,7 @@ const apiUrl = isProd
 // auth-system_NodeJS\backend
 export default defineConfig({
   plugins: [svelte()],
-  envDir: resolve(__dirname, ".."),
+  envDir: resolve(__dirname, ".."), // ../.env
   server: {
     port: FRONTEND_PORT,
     host: FRONTEND_HOST,
