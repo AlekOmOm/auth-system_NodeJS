@@ -1,8 +1,7 @@
-import db from "../db/db.js";
+import db from "../db/repository.js";
 
 // --- utils ---
 import hashing from "../utils/hashing.js";
-
 
 /** --- services ---
  *  - current user
@@ -14,91 +13,90 @@ import hashing from "../utils/hashing.js";
 // --- current user ---
 
 const getCurrentUser = (req, res, next) => {
-    if (!req.session || !req.session.userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-    const id = req.session.userId;
+  const id = req.session.userId;
 
-    const user = getUserById(id)
+  const user = db.getUser(id);
 
-    if (!user) {
-        return res.status(401).json({ message: "User not found" });
-    }
+  if (!user) {
+    return res.status(401).json({ message: "User not found" });
+  }
 
-    res.status(200).json({ message: "User retrieved successfully", user: user });
-
-}
+  res.status(200).json({ message: "User retrieved successfully", user: user });
+};
 
 // --- CRUD operations ---
-const saveUser = (req, res, next) => {
+const saveUser = async (req, res, next) => {
   const { name, email, password } = req.body;
   const hashedPassword = hashing.hash(password);
-    const role = "user"; // default role
-  const user = { name, role, email, password: hashedPassword };
-  const newUser = db.createUser(user);
+  const role = "user"; // default role
+  const user = [name, role, email, hashedPassword]; // Match the parameter order in queries.js
+  const newUser = await db.createUser(user);
 
   return newUser;
 };
 
-const getUsers = (req, res, next) => {
-  const users = db.getUsers();
+const getUsers = async (req, res, next) => {
+  const users = await db.getUsers();
   users.forEach((user) => {
     user.password = undefined; // remove password from response
   });
   res
     .status(201)
-    .json({ message: "Users retrieved successfully", user: users });
+    .json({ message: "Users retrieved successfully", users: users });
 };
 
-const getUserById = (req, res, next) => {
+const getUserById = async (req, res, next) => {
   const { id } = req.params;
-  const user = db.getUserById(id);
+  const user = await db.getUser(id);
   return user;
 };
 
-const getUserByEmail = (email) => {
-  return db.getUserByEmail(email);
+const getUserByEmail = async (email) => {
+  // This function needs to be implemented in repository.js
+  // For now, we'll get all users and filter
+  const users = await db.getUsers();
+  return users.find((user) => user.email === email);
 };
 
-const getUserByNameAndEmail = (req, res, next) => {
-  let { name, email } = "";
-  if (req.params === None && req.body.data !== None) {
+const getUserByNameAndEmail = async (req, res, next) => {
+  let name, email;
+  if (req.params && req.body.data) {
     name = req.body.data.name;
     email = req.body.data.email;
   }
 
-  const user = db.getUserByNameAndEmail(name, email);
-  return user;
+  // This function needs to be implemented in repository.js
+  // For now, we'll get all users and filter
+  const users = await db.getUsers();
+  return users.find((user) => user.name === name && user.email === email);
 };
 
-const updateUser = (req, res, next) => {
+const updateUser = async (req, res, next) => {
   const { id } = req.params;
   const { name, role, email, password } = req.body;
   const hashedPassword = password; // TODO: hash password
-  const user = db.updateUser(id, {
-    name,
-    role,
-    email,
-    password: hashedPassword,
-  });
+  const user = [name, role, email, hashedPassword, id]; // Match the parameter order in queries.js
+  const result = await db.updateUser(user);
+  return result;
 };
 
 // --- password compare ---
 
 const isSamePwd = (reqPwd, dbPwd) => {
-    const isMatch = hashing.compare(reqPwd, dbPwd);
-    if (!isMatch) {
-        return false;
-    }
-    return true;
-}
-
-
+  const isMatch = hashing.compare(reqPwd, dbPwd);
+  if (!isMatch) {
+    return false;
+  }
+  return true;
+};
 
 // --- export ---
 const userService = {
-    getCurrentUser,
+  getCurrentUser,
   saveUser,
   getUsers,
   getUserById,
