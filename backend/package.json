@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "run": "node server.js",
-    "dev": "npm run reset-db && npm run nodemonDev",
+    "dev": "npm run init-db && npm run reset-db && npm run nodemonDev",
     "nodemonDev": "nodemon server.js",
     "init-db": "node ./src/db/setupDB.js",
     "reset-db": "node ./src/db/setupDB.js --delete",

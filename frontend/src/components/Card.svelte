@@ -1,60 +1,44 @@
 <script>
-   // Import components
-   import Login from './Login.svelte';
-   import Register from './Register.svelte';
-   import { useLocation } from 'svelte-routing';
- 
-   const location = useLocation();
-   // State to track which side of the card to show
-   let isFlipped = false;
-   
-   $: isFlipped = $location?.pathname === '/register';
-   
-   // Function to flip the card
-   function flipCard() {
-       isFlipped = !isFlipped;
-   }
+
+    import { Router, Route, Link, useLocation } from 'svelte-routing'
+    import Login from '../routes/card/Login.svelte'
+    import Register from '../routes/card/Register.svelte'
+
+    const loc = useLocation(); 
+   // @ts-ignore
+     $: flipped = loc.pathname === '/register';
+
 </script>
 
-   <div class="card-container">
-      <div class="flip-card {isFlipped ? 'flipped' : ''}">
+<Router>
+    <nav>
+        <Link to="/">login</Link>
+        <Link to="/register">register</Link>
+    </nav>
 
-         <!-- Front side (Login) -->
-         <div class="flip-card-front">
-            <div class="card-header">
-                  <h2>Login</h2>
-                  <p>Access your account</p>
+    <div class="scene">
+        <div class="card {flipped ? 'is-flipped' : ''}">
+            <div class="face front">
+                <Login />
+                <Route path="/register">
+                    <button>register here</button>
+                </Route>
+                
             </div>
-            <Login />
-            <div class="card-footer">
-                  <p>Don't have an account?</p>
-                  <button class="flip-button" on:click={flipCard}>
-                     Create Account
-                     <span class="arrow">→</span>
-                  </button>
-            </div>
-         </div>
-         
-         <!-- Back side (Register) -->
-         <div class="flip-card-back">
-            <div class="card-header">
-                  <h2>Register</h2>
-                  <p>Create a new account</p>
-            </div>
-            <Register />
-            <div class="card-footer">
-                  <p>Already have an account?</p>
-                  <button class="flip-button" on:click={flipCard}>
-                     Login
-                     <span class="arrow">←</span>
-                  </button>
-            </div>
-         </div>
-      </div>
-   </div>
 
+            <div class="face back">
+                <Register />
+
+            </div>
+            <p>flipped: {flipped}</p>
+        </div>
+    </div>
+</Router>
+        
 <style>
-   @import "../styles/forms.css";
-   @import "../styles/card.css";
+  .scene { perspective: 1000px; }
+  .card  { transition: transform .6s; transform-style: preserve-3d; position: relative; }
+  .card.is-flipped { transform: rotateY(180deg); }
+  .face  { position: absolute; width: 100%; backface-visibility: hidden; }
+  .back  { transform: rotateY(180deg); }
 </style>
-
