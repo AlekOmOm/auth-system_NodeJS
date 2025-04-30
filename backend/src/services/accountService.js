@@ -34,13 +34,6 @@ const deleteAccount = (req, res, next) => {
   return dummyAccount;
 };
 
-
 // ---- export ----
 
-const accountService = {
-    getAccount, 
-    updateAccount,
-    deleteAccount,
-};
-
-export default accountService;
+export { getAccount, updateAccount, deleteAccount };

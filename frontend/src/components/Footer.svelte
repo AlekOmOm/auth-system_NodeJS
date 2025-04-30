@@ -1,15 +1,20 @@
 
 <script>
   import { Router, Route, Link } from 'svelte-routing';
+  import ProtectedRoute from './ProtectedRoute.svelte';
+  import UnAuthenticatedRoute from './UnAuthenticatedRoute.svelte';
+
+  import authApi from '../services/authApi';
 </script>
 
 <div class="footer">
    <Router>
    <nav>
       <div class="links">
-         <Link class="link" id="home" to="/">home</Link>
-         <Link class="link" id="login" to="/login">login</Link>
-         <Link class="link" id="register" to="/register">register</Link>
+         <ProtectedRoute path="/home"><Link class="link" id="home" to="/home">home</Link></ProtectedRoute>
+         <ProtectedRoute path="/logout"><Link class="link" id="logout" to="/logout" onclick={authApi.logout}>logout</Link></ProtectedRoute>
+         <UnAuthenticatedRoute><Link class="link" id="login" to="/login">login</Link></UnAuthenticatedRoute>
+         <UnAuthenticatedRoute><Link class="link" id="register" to="/register">register</Link></UnAuthenticatedRoute>
       </div>    
    </nav>
    </Router>

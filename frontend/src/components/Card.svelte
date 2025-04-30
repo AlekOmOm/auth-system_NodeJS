@@ -1,39 +1,39 @@
 <script>
-
-    import { Router, Route, Link, useLocation } from 'svelte-routing'
+    // Removed Router, Route, Link imports
+    import { useLocation, navigate } from 'svelte-routing' 
     import Login from '../routes/card/Login.svelte'
     import Register from '../routes/card/Register.svelte'
 
     const loc = useLocation(); 
-   // @ts-ignore
+    // @ts-ignore
      $: flipped = loc.pathname === '/register';
+
+    // Function to navigate (example if buttons are needed inside)
+    function goToRegister() {
+        navigate('/register');
+    }
+    function goToLogin() {
+        navigate('/'); // Assuming / is login now
+    }
 
 </script>
 
-<Router>
-    <nav>
-        <Link to="/">login</Link>
-        <Link to="/register">register</Link>
-    </nav>
 
-    <div class="scene">
-        <div class="card {flipped ? 'is-flipped' : ''}">
-            <div class="face front">
-                <Login />
-                <Route path="/register">
-                    <button>register here</button>
-                </Route>
-                
-            </div>
-
-            <div class="face back">
-                <Register />
-
-            </div>
-            <p>flipped: {flipped}</p>
+<div class="scene">
+    <div class="card {flipped ? 'is-flipped' : ''}">
+        <div class="face front">
+            <Login />
+            <!-- Removed Route and button here - Login component handles its own form/link -->
         </div>
+
+        <div class="face back">
+            <Register />
+             <!-- Register component handles its own form/link -->
+        </div>
+        <!-- Optional: Keep for debugging -->
+        <!-- <p>flipped: {flipped}</p> -->
     </div>
-</Router>
+</div>
         
 <style>
   .scene { perspective: 1000px; }

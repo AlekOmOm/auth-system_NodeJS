@@ -116,7 +116,12 @@ app.use("/api/users", userRoute);
 import accountRoute from "./src/routes/account.js";
 app.use("/api/account", accountRoute);
 
-// --------- server ---------
+// Run server if this is the main module (not imported for tests)
+
+// this is used to check if the server is running directly or being imported for tests
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Export app for testing
+export default app;

@@ -3,10 +3,14 @@ import { Router } from "express";
 const router = Router();
 
 // --- middleware ---
-import auth from "../middleware/auth.js";
+import { isAuthenticated } from "../middleware/auth.js";
 
 // --- controller ---
-import accountController from "../controllers/account.js";
+import {
+  getAccount,
+  updateAccount,
+  deleteAccount,
+} from "../controllers/account.js";
 
 // --- routes ---
 /*
@@ -15,7 +19,7 @@ import accountController from "../controllers/account.js";
    - delete account
 */
 
-router.use(auth.isAuthenticated);
+router.use(isAuthenticated);
 
 /**
  * @name: get account
@@ -23,7 +27,7 @@ router.use(auth.isAuthenticated);
  * @route: GET /api/account/
  * @access: logged-in user
  */
-router.get("/", accountController.getAccount);
+router.get("/", getAccount);
 
 /**
  * @name: update account
@@ -31,7 +35,7 @@ router.get("/", accountController.getAccount);
  * @route: PUT /api/account/
  * @access: logged-in user
  */
-router.put("/", accountController.updateAccount);
+router.put("/", updateAccount);
 
 /**
  * @name: delete account
@@ -39,7 +43,7 @@ router.put("/", accountController.updateAccount);
  * @route: DELETE /api/account/
  * @access: logged-in user
  */
-router.delete("/", accountController.deleteAccount);
+router.delete("/", deleteAccount);
 
 // --- export ---
 export default router;

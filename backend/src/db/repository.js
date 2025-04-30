@@ -1,44 +1,64 @@
-// CRUD operations for users table in sqlite db: auth.db
+// Main repository module that combines user and session repositories
+import userRepository from "./repository/userRepository.js";
+import sessionRepository from "./repository/sessionRepository.js";
 
-import db from "./connection.js";
-import queries from "./queries.js";
+// Additional methods from MODIFICATIONS-NEEDED.md
+import db from "./connection/connection.js";
+import queries from "./connection/queries.js";
+import testQueries from "./_test_/queries.js";
 
-// ----- DML -----
-
-/** ---- CRUD users table ---
- *
- * - create user
- * - read user
- *    - read all users
- * - update user
- * - delete user
- */
-
-const createUser = (user) => {
-  return db.run(queries.createUser, user);
+const getUserByEmail = (email) => {
+  return db.get(queries.getUserByEmail, email);
 };
 
-const getUsers = () => {
-  return db.all(queries.getUsers);
+const getUserByNameAndEmail = (name, email) => {
+  return db.get(queries.getUserByNameAndEmail, [name, email]);
 };
 
-const getUser = (id) => {
-  return db.get(queries.getUser, id);
+const getSessionByUserId = (userId) => {
+  return db.get(queries.getSessionByUserId, userId);
 };
 
-const updateUser = (user) => {
-  return db.run(queries.updateUser, user);
+const deleteSessionByUserId = (userId) => {
+  return db.run(queries.deleteSessionByUserId, userId);
 };
 
-const deleteUser = (id) => {
-  return db.run(queries.deleteUser, id);
+// For test database
+const getTestUserByEmail = (email) => {
+  return db.get(queries.getTestUserByEmail, email);
 };
 
-// Export the repository functions
+const getTestUserByNameAndEmail = (name, email) => {
+  return db.get(queries.getTestUserByNameAndEmail, [name, email]);
+};
+
+// combined export for repositories
 export default {
-  createUser,
-  getUsers,
-  getUser,
-  updateUser,
-  deleteUser,
+  // User methods
+  ...userRepository,
+  getUserByEmail,
+  getUserByNameAndEmail,
+
+  // Session methods
+  ...sessionRepository,
+  getSessionByUserId,
+  deleteSessionByUserId,
+
+  /* ---- test methods ----
+   */
+  // Test users
+  getTestUsers: () => db.all(testQueries.getTestUsers),
+  getTestUser: (id) => db.get(testQueries.getTestUser, id),
+  createTestUser: (user) => db.run(testQueries.createTestUser, user),
+  updateTestUser: (user) => db.run(testQueries.updateTestUser, user),
+  deleteTestUser: (id) => db.run(testQueries.deleteTestUser, id),
+  getTestUserByEmail,
+  getTestUserByNameAndEmail,
+
+  // Test sessions
+  createTestSession: (session) =>
+    db.run(testQueries.createTestSession, session),
+  getTestSession: (id) => db.get(testQueries.getTestSession, id),
+  getTestSessions: () => db.all(testQueries.getTestSessions),
+  deleteTestSession: (id) => db.run(testQueries.deleteTestSession, id),
 };

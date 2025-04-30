@@ -1,6 +1,7 @@
 <script>
   import { Router, Route, navigate, Link } from 'svelte-routing';
   import authApi from '../../services/authApi.js'
+  import { authStore } from '../../stores/authStore.js';
 
   let name = '';
   let email = '';
@@ -15,13 +16,16 @@
       email: email.trim(),
       password: password.trim()
     }
+    console.log(credentials);
 
     try {
       const response = await authApi.login(credentials);
       console.log(response);
-      if (response.success) {
-        navigate('/home');
+      if (response.success && response.data) {
+        authStore.login(response.data);
+        navigate('/home', { replace: true });
       } else {
+        errorMessage = response.message || 'Login failed.';
         console.log(response.message);
       }
     } catch (error) {
@@ -36,9 +40,9 @@
   <h2> ___ </h2>
 
   <form onsubmit={handleLogin}>
-    <input id="name" bind:value={name} name="name" placeholder="name" required/>
-    <input id="email" bind:value={email} name="email" placeholder="email" required/>
-    <input id="password" bind:value={password} name="password" type="password" placeholder="password" required/>
+    <input id="name" bind:value={name} name="name" placeholder="name" required autocomplete="username"/>
+    <input id="email" bind:value={email} name="email" placeholder="email" required autocomplete="email"/>
+    <input id="password" bind:value={password} name="password" type="password" placeholder="password" required autocomplete="current-password"/>
     
     {#if errorMessage}
       <p class="error-message">{errorMessage}</p>
@@ -47,14 +51,14 @@
     <button type="submit">login</button>
   </form>
 
-  <Router>
-    <nav>
-      <p>don't have an account?</p>
-      <Link to="/register">register</Link>
-    </nav>
-  </Router>
+  <nav>
+    <p>don't have an account?</p>
+    <a href="/register" onclick={(event) => { event.preventDefault(); navigate('/register'); }}>
+      register
+    </a>
+  </nav>
 
-</div>
+</div>                                        
 
 <style>
       form {

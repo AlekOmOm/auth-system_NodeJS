@@ -7,12 +7,15 @@
 
   let users = $state([]);
 
+/**
+ * @description populate the users list
+ */
   async function populate() {
-    const obj = (await authApi.testApi());
-    console.log(obj);
-    users = obj.users;
-    console.log(users);
+    const usersData = (await authApi.testApi()).data.users;
     
+    usersData.forEach(user => {
+      users.push(user.name);
+    }); 
   }
 
 </script>
@@ -31,10 +34,11 @@
    
 
    <div class="users-list">
-      
-      {#each users as user}
-         <li>{user.name}</li>
-      {/each}
+      <ul>
+         {#each users as user}
+            <li>{user}</li>
+         {/each}
+      </ul>
    </div>
 </div>
 

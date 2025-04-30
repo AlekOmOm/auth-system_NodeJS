@@ -1,11 +1,7 @@
 import { fetchGet, fetchPost } from "../util/fetch";
+import { authStore } from "../stores/authStore";
 
-// Log the environment variable to debug
-console.log("VITE_BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
-
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:3001/api";
-console.log("Using BACKEND_URL:", BACKEND_URL);
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const BACKEND_URL_AUTH = `${BACKEND_URL}/auth`;
 const BACKEND_URL_USERS = `${BACKEND_URL}/users`;
@@ -16,15 +12,10 @@ const BACKEND_URL_USERS = `${BACKEND_URL}/users`;
  */
 const testApi = async () => {
   try {
-    // Direct fetch approach - this works
-    const test = await fetch(`http://localhost:3001/api/users`);
-    const response = await test.json();
-    console.log("Direct fetch response:", response);
-
-    // Using fetchGet utility
-    console.log("Attempting fetchGet with URL:", BACKEND_URL_USERS);
+    console.log("testApi called");
     const result = await fetchGet(`${BACKEND_URL_USERS}`);
-    console.log("fetchGet result:", result);
+    console.log("result");
+    console.log(result);
 
     return result;
   } catch (error) {
@@ -39,38 +30,47 @@ const testApi = async () => {
  * @returns {Promise<Object>} Registration result with success status
  */
 const register = async (credentials) => {
-  console.log("const register called");
-
   try {
     // Input validation
-    if (!credentials.username || !credentials.password) {
+    if (!credentials.name || !credentials.email || !credentials.password) {
       return {
-        message: "Username and password are required",
+        message: "Name, email and password are required",
         success: false,
       };
     }
 
+    // fetchPost now returns an object like { success: boolean, data: ..., errors: ..., message: ... }
     const response = await fetchPost(
       `${BACKEND_URL_AUTH}/register`,
       credentials
     );
 
-    // Check if the response indicates an error
-    if (response.error || !response.id) {
-      return {
-        ...response,
-        success: false,
-      };
+    if (!response.success) {
+      return response;
     }
 
-    return {
-      ...response,
-      success: true,
-    };
+    console.log("Registration successful response from fetchPost:", response);
+
+    // --- Added: Update authStore on successful registration ---
+    if (response.data && response.data.user) {
+      authStore.login(response.data.user);
+    } else {
+      // Start of Selection
+      console.warn(
+        "Registration successful, but user data missing in response."
+      );
+      // End of Selectio
+
+      // Return the successful response object
+      return response;
+    }
   } catch (error) {
-    console.error("Registration error:", error);
+    // This catch block should now ideally only handle unexpected errors *within this function's logic*,
+    // as fetchPost catches its own errors.
+    console.error("Unexpected error in authApi.register:", error);
     return {
-      message: error.message || "Registration failed",
+      message:
+        error.message || "An unexpected error occurred during registration",
       success: false,
     };
   }
@@ -78,39 +78,78 @@ const register = async (credentials) => {
 
 /**
  * Login a user with credentials
- * @param {Object} credentials - User credentials with username and password
+ * @param {Object} credentials - User credentials with name, email and password
  * @returns {Promise<Object>} Login result with success status
  */
 const login = async (credentials) => {
   console.log("const login called");
 
   try {
-    // Input validation
-    if (!credentials.username || !credentials.password) {
+    // Input validation (assuming email/password for login)
+    if (!credentials.email || !credentials.password) {
       return {
-        message: "Username and password are required",
+        message: "Email and password are required",
         success: false,
       };
     }
 
     const response = await fetchPost(`${BACKEND_URL_AUTH}/login`, credentials);
 
-    // Check if the response indicates an error
-    if (response.error || !response.userId) {
-      return {
-        ...response,
-        success: false,
-      };
+    // fetchPost returns { success, data, message, errors }
+    if (!response.success) {
+      // Return the structured error from fetchPost
+      return response;
     }
 
+    // --- Added: Update authStore on successful login ---
+    // Check if the response indicates success and contains essential user data (like userId)
+    if (response.success && response.data && response.data.userId) {
+      authStore.login(response.data); // Pass the whole data object
+      return {
+        ...response, // Keep other potential info from response
+        success: true,
+      };
+    } else if (response.success) {
+      // Handle case where login API reports success but essential data (userId) is missing
+      console.warn(
+        "Login successful, but essential user data (userId) missing in response:",
+        response.data
+      );
+      return {
+        ...response, // Keep other potential info from response
+        success: false,
+        message: "Login successful, but user data is incomplete.", // More specific message
+      };
+    } else {
+      // Handle the case where fetchPost already indicated failure
+      return response; // Return the original error response from fetchPost
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    return {
+      message: error.message || "Login failed",
+      success: false,
+    };
+  }
+};
+
+/**
+ * Logout the current user
+ * @returns {Promise<Object>} Logout result with success status
+ */
+const logout = async () => {
+  try {
+    const response = await fetchPost(`${BACKEND_URL_AUTH}/logout`, {});
+
+    authStore.logout();
     return {
       ...response,
       success: true,
     };
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Logout error:", error);
     return {
-      message: error.message || "Login failed",
+      message: error.message || "Logout failed",
       success: false,
     };
   }
@@ -121,6 +160,7 @@ const authApi = {
   testApi,
   register,
   login,
+  logout,
 };
 
 export default authApi;

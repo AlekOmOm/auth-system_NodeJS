@@ -1,109 +1,195 @@
 import db from "../db/repository.js";
+import { NotFoundError, ValidationError } from "../middleware/errorHandler.js";
 
-// --- utils ---
-import hashing from "../utils/hashing.js";
+// ---- utils ----
+import { removePasswordFromUser } from "../utils/authUtils.js";
 
-/** --- services ---
- *  - current user
- *  - CRUD operations
- *  - helper functions
- *      - isSamePwd
- */
+// ---- service ----
 
-// --- current user ---
+// Read all users
+export async function getUsers() {
+  try {
+    console.log("getUsers");
+    const users = await db.getUsers();
+    console.log("users", users);
 
-const getCurrentUser = (req, res, next) => {
-  if (!req.session || !req.session.userId) {
-    return res.status(401).json({ message: "Unauthorized" });
+    // Filter sensitive data
+    const filteredUsers = users.map((user) => removePasswordFromUser(user));
+
+    console.log("filteredUsers", filteredUsers);
+    return {
+      message: "Users retrieved successfully",
+      data: {
+        users: filteredUsers,
+      },
+    };
+  } catch (error) {
+    throw error;
   }
+}
 
-  const id = req.session.userId;
+// Read user by id
+export async function getUserById(id) {
+  try {
+    if (!id) {
+      throw new ValidationError("User ID is required");
+    }
 
-  const user = db.getUser(id);
+    const user = await db.getUser(id);
 
-  if (!user) {
-    return res.status(401).json({ message: "User not found" });
+    if (!user) {
+      throw new NotFoundError(`User with ID ${id} not found`);
+    }
+
+    // Filter sensitive data
+    const filteredUser = removePasswordFromUser(user);
+
+    return {
+      message: "User retrieved successfully",
+      data: filteredUser,
+    };
+  } catch (error) {
+    throw error;
   }
+}
 
-  res.status(200).json({ message: "User retrieved successfully", user: user });
-};
+// Read user by email
+export async function getUserByNameAndEmail(name, email) {
+  try {
+    if (!name || !email) {
+      throw new ValidationError("Name and email are required");
+    }
 
-// --- CRUD operations ---
-const saveUser = async (req, res, next) => {
-  const { name, email, password } = req.body;
-  const hashedPassword = hashing.hash(password);
-  const role = "user"; // default role
-  const user = [name, role, email, hashedPassword]; // Match the parameter order in queries.js
-  const newUser = await db.createUser(user);
+    const user = await db.getUserByNameAndEmail(name, email);
 
-  return newUser;
-};
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
 
-const getUsers = async (req, res, next) => {
-  const users = await db.getUsers();
-  users.forEach((user) => {
-    user.password = undefined; // remove password from response
-  });
-  res
-    .status(201)
-    .json({ message: "Users retrieved successfully", users: users });
-};
+    // Filter sensitive data
+    const filteredUser = removePasswordFromUser(user);
 
-const getUserById = async (req, res, next) => {
-  const { id } = req.params;
-  const user = await db.getUser(id);
-  return user;
-};
-
-const getUserByEmail = async (email) => {
-  // This function needs to be implemented in repository.js
-  // For now, we'll get all users and filter
-  const users = await db.getUsers();
-  return users.find((user) => user.email === email);
-};
-
-const getUserByNameAndEmail = async (req, res, next) => {
-  let name, email;
-  if (req.params && req.body.data) {
-    name = req.body.data.name;
-    email = req.body.data.email;
+    return {
+      message: "User retrieved successfully",
+      data: filteredUser,
+    };
+  } catch (error) {
+    throw error;
   }
+}
 
-  // This function needs to be implemented in repository.js
-  // For now, we'll get all users and filter
-  const users = await db.getUsers();
-  return users.find((user) => user.name === name && user.email === email);
-};
+// Create user
+export async function createUser(user) {
+  try {
+    if (!user || !user.name || !user.email || !user.password) {
+      throw new ValidationError("Name, email, and password are required");
+    }
 
-const updateUser = async (req, res, next) => {
-  const { id } = req.params;
-  const { name, role, email, password } = req.body;
-  const hashedPassword = password; // TODO: hash password
-  const user = [name, role, email, hashedPassword, id]; // Match the parameter order in queries.js
-  const result = await db.updateUser(user);
-  return result;
-};
+    // Set default role if not provided
+    const userWithRole = {
+      ...user,
+      role: user.role || "user",
+    };
 
-// --- password compare ---
+    const result = await db.createUser([
+      userWithRole.name,
+      userWithRole.role,
+      userWithRole.email,
+      userWithRole.password,
+    ]);
 
-const isSamePwd = (reqPwd, dbPwd) => {
-  const isMatch = hashing.compare(reqPwd, dbPwd);
-  if (!isMatch) {
-    return false;
+    // Filter sensitive data
+    const newUser = {
+      id: result.lastID,
+      name: userWithRole.name,
+      role: userWithRole.role,
+      email: userWithRole.email,
+    };
+
+    return {
+      message: "User created successfully",
+      data: newUser,
+    };
+  } catch (error) {
+    throw error;
   }
-  return true;
-};
+}
 
-// --- export ---
+// Update user
+export async function updateUser(id, userData) {
+  try {
+    if (!id) {
+      throw new ValidationError("User ID is required");
+    }
+
+    // Get existing user
+    const existingUser = await db.getUser(id);
+
+    if (!existingUser) {
+      throw new NotFoundError(`User with ID ${id} not found`);
+    }
+
+    // Update only provided fields
+    const updatedUser = {
+      name: userData.name || existingUser.name,
+      role: userData.role || existingUser.role,
+      email: userData.email || existingUser.email,
+      password: userData.password || existingUser.password,
+    };
+
+    await db.updateUser([
+      updatedUser.name,
+      updatedUser.role,
+      updatedUser.email,
+      updatedUser.password,
+      id,
+    ]);
+
+    // Filter sensitive data
+    const filteredUser = removePasswordFromUser({
+      id,
+      ...updatedUser,
+    });
+
+    return {
+      message: "User updated successfully",
+      data: filteredUser,
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Delete user
+export async function deleteUser(id) {
+  try {
+    if (!id) {
+      throw new ValidationError("User ID is required");
+    }
+
+    const user = await db.getUser(id);
+
+    if (!user) {
+      throw new NotFoundError(`User with ID ${id} not found`);
+    }
+
+    await db.deleteUser(id);
+
+    return {
+      message: "User deleted successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
 const userService = {
-  getCurrentUser,
-  saveUser,
   getUsers,
   getUserById,
-  getUserByEmail,
   getUserByNameAndEmail,
+  createUser,
   updateUser,
-  isSamePwd,
+  deleteUser,
 };
 
 export default userService;

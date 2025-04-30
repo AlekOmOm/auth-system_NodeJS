@@ -1,6 +1,6 @@
-import db from "./connection.js";
-import queries from "./queries.js";
-import seedData from "./seedData.json" with { type: "json" };
+import db from "./connection/connection.js";
+import queries from "./connection/queries.js";
+import seedData from "./connection/seedData.json" with { type: "json" };
 
 // Delete mode
 process.argv.includes("--delete") && console.log("Deleting tables...");
@@ -8,11 +8,13 @@ process.argv.includes("--delete") && console.log("Deleting tables...");
 const deleteMode = process.argv.includes("--delete");
 
 if (deleteMode) {
-  db.exec("DROP TABLE IF EXISTS users");
+  await db.exec(queries.dropTableUsers);
+  await db.exec(queries.dropTableSessions);
 }
 
 // DDL
 await db.exec(queries.createTableUsers);
+await db.exec(queries.createTableSessions);
 
 // DML
 
@@ -32,4 +34,16 @@ try {
   console.log("Users:", users);
 } catch (error) {
   console.error("Error retrieving users:", error);
+}
+
+try {
+  const sessions = await db.all(queries.getSessions);
+  sessions.forEach((session) => {
+    session.password = undefined;
+    session.role = undefined;
+    session.id = undefined;
+  });
+  console.log("Sessions:", sessions);
+} catch (error) {
+  console.error("Error retrieving sessions:", error);
 }
