@@ -106,6 +106,7 @@ app.use(generalLimiter);
  *  - PUT /api/users/user
  *  - DELETE /api/users/user
  */
+
 import authRoute from "./src/routes/auth.js";
 app.use("/api/auth", authRoute);
 

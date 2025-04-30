@@ -1,15 +1,8 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
-const API_KEY = "123";
-const SECRET = "123";
-
-// test22
-// db path: db\auth.db
-// current path: backend\src\db\connection.js
-
 const connection = await open({
-  filename: "../../../db/auth.db", // path relative to the current file
+  filename: "../db/auth.db",
   driver: sqlite3.Database,
 });
 
