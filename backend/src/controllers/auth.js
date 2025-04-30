@@ -1,8 +1,10 @@
 // --- services ---
-import userService from "../services/userService.js";
+// import userService from "../services/userService.js"; // Removed userService
+import * as authService from "../services/auth.js"; // Import authService
 
 // --- utils ---
-import hashing from "../utils/hashing.js"; // bcryptjs
+// import hashing from "../utils/hashing.js"; // No longer needed here
+import { json } from "express"; // Keep if needed, but likely service handles response format
 
 // --- controller ---
 /**
@@ -10,142 +12,105 @@ import hashing from "../utils/hashing.js"; // bcryptjs
  *   - register
  *   - login
  *   - logout
+ *   - getCurrentUser
  */
 
 /**
  * @description logic for registering a new user
- *
- * @param {*} req
- * @param {*} res
- * @param {*} next
- * @returns
- *  - success: calls login function after registering a new user
- *  - failure: returns 400 status code and message
+ * Calls authService.register
  */
-const registerFunc = async (req, res, next) => {
+const register = async (req, res, next) => {
   try {
-    const { email } = req.body;
-
-    // Check if user already exists
-    const existingUser = await userService.getUserByEmail(email);
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
-    }
-
-    const newUser = await userService.saveUser(req, res, next);
-    if (!newUser) {
-      return res.status(400).json({ message: "User creation failed" });
-    }
-
-    // Set session
-    req.session.userId = newUser.id;
-    req.session.role = newUser.role;
-
-    // Remove password from response
-    const userResponse = { ...newUser };
-    delete userResponse.password;
-
-    return res.status(201).json({
-      message: "User created successfully",
-      user: userResponse,
-    });
+    // Service handles validation and creation
+    const result = await authService.register(req.body);
+    // Assuming service throws ValidationError or other errors on failure
+    // Assuming service returns success object { message, data }
+    res.status(201).json(result); // 201 Created for registration
   } catch (error) {
-    console.error("Registration error:", error);
-    return res.status(500).json({ message: "Registration failed" });
+    next(error); // Pass error to global error handler
   }
 };
 
 /**
  * @description logic for logging in
- *
- * @param {*} req
- * @param {*} res
- * @param {*} next
- *
- * @body
- *  - email, password
- * @returns
- *  - success: returns 200 status code and message
- *  - failure: returns 400 status code and message
+ * Calls authService.login
  */
-const loginFunc = async (req, res, next) => {
+const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
-
-    const user = await userService.getUserByEmail(email);
-    if (!user || !user.password) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    if (!userService.isSamePwd(password, user.password)) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    // Set session
-    req.session.userId = user.id;
-    req.session.role = user.role;
-
-    // Remove password from response
-    const userResponse = { ...user };
-    delete userResponse.password;
-
-    console.log("userResponse", userResponse);
-
-    return res.status(200).json({
-      message: "Logged in successfully",
-      user: userResponse,
-    });
+    // Service handles validation, user lookup, password check, session creation
+    const result = await authService.login(req.body, req.session);
+    // Assuming service throws AuthError/ValidationError on failure
+    // Assuming service returns success object { message, data }
+    res.status(200).json(result);
   } catch (error) {
-    console.error("Login error:", error);
-    return res.status(500).json({ message: "Login failed" });
+    next(error); // Pass error to global error handler
   }
 };
 
 /**
  * @description logic for logging out
- *
- * @param {*} req
- * @param {*} res
- * @param {*} next
- * @returns
- *  - success: returns 200 status code and message
- *  - failure: returns 400 status code and message
+ * Calls authService.logout
  */
-const logoutFunc = (req, res, next) => {
-  if (!req.session) {
-    return res.status(400).json({ message: "No active session found" });
+const logout = async (req, res, next) => {
+  try {
+    // Service handles session destruction
+    const result = await authService.logout(req.session);
+    // Assuming service throws AuthError if no session
+    // Assuming service returns success object { message }
+    res.status(200).json(result);
+  } catch (error) {
+    next(error); // Pass error to global error handler
   }
+};
 
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({
-        message: "Could not logout, please try again",
-      });
-    }
+// --- session ---
 
-    return res.status(200).json({ message: "Logged out successfully" });
-  });
+/**
+ * @description Get all sessions for the current user
+ * Calls authService.getSessions
+ */
+const getSessions = async (req, res, next) => {
+  try {
+    const result = await authService.getSessions(req.session);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @description Get a specific session by ID
+ * Calls authService.getSession
+ */
+const getSession = async (req, res, next) => {
+  try {
+    const result = await authService.getSession(
+      req.session,
+      req.params.sessionId
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
 };
 
 // ---- getCurrentUser ---
-
-const getCurrentUser = (req, res, next) => {
-  //    userService.getCurrentUser(req, res, next);
-};
-
-// ---------------------
-const authController = {
-  register: registerFunc,
-  login: loginFunc,
-  logout: logoutFunc,
-  getCurrentUser: userService.getCurrentUser,
+/**
+ * @description Get current user details
+ * Calls authService.getCurrentUser
+ */
+const getCurrentUser = async (req, res, next) => {
+  try {
+    // Service handles checking session and fetching user
+    const result = await authService.getCurrentUser(req.session);
+    // Assuming service throws AuthError if no session/user
+    // Assuming service returns success object { message, data: user }
+    res.status(200).json(result);
+  } catch (error) {
+    next(error); // Pass error to global error handler
+  }
 };
 
 // --- export ---
-export default authController;
+// Exporting named exports as before
+export { register, login, logout, getCurrentUser, getSessions, getSession };
