@@ -1,6 +1,9 @@
 import express from "express";
 const app = express();
 
+import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
+
 // --- environment variables ---
 const PORT = process.env.BACKEND_PORT || 3001;
 const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
@@ -17,9 +20,6 @@ const RATE_LIMIT_LIMIT = process.env.RATE_LIMIT_LIMIT || 300;
  * - session
  * - rate limit
  */
-
-import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
 
 app.use(express.json());
 
@@ -116,12 +116,30 @@ app.use("/api/users", userRoute);
 import accountRoute from "./src/routes/account.js";
 app.use("/api/account", accountRoute);
 
-// Run server if this is the main module (not imported for tests)
+// Import the DB connection (triggers top-level await)
+import db from "./src/db/connection/connection.js";
+console.log(
+  "Database connection imported successfully (top-level await likely finished)."
+);
 
-// this is used to check if the server is running directly or being imported for tests
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+console.log("Setting up server listener...");
+
+const serverInstance = app.listen(PORT, () => {
+  // This callback might execute *after* the script checks if it should exit
+  console.log(`---> Server listening event fired on port ${PORT}`);
 });
 
-// Export app for testing
+serverInstance.on("listening", () => {
+  console.log(
+    `---> Server is officially listening (listening event) on port ${PORT}`
+  );
+});
+
+serverInstance.on("error", (error) => {
+  console.error("---> Server listener error:", error);
+  process.exit(1);
+});
+
+console.log("app.listen called, Node should wait for events now.");
+
 export default app;

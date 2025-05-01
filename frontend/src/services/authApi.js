@@ -12,14 +12,10 @@ const BACKEND_URL_USERS = `${BACKEND_URL}/users`;
  */
 const testApi = async () => {
   try {
-    console.log("testApi called");
     const result = await fetchGet(`${BACKEND_URL_USERS}`);
-    console.log("result");
-    console.log(result);
 
     return result;
   } catch (error) {
-    console.error("Error in testApi:", error);
     throw error;
   }
 };
