@@ -1,15 +1,9 @@
 import express from "express";
 const app = express();
+import config from "./src/config/index.js";
 
-import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
-
-// --- environment variables ---
-const PORT = process.env.BACKEND_PORT || 3001;
-const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
-const SESSION_SECRET = process.env.SESSION_SECRET;
-const RATE_LIMIT_WINDOW = process.env.RATE_LIMIT_WINDOW || 15;
-const RATE_LIMIT_LIMIT = process.env.RATE_LIMIT_LIMIT || 300;
+// Extract configuration
+const { server, security, rateLimit, cors, frontend } = config;
 
 // --- middleware ---
 /*
@@ -25,18 +19,32 @@ app.use(express.json());
 
 /*
  * cors
- * - set origin to frontend port
+ * - set origin to allow multiple frontends (Auth-server frontend + client applications)
  * - set credentials to true
  */
-import cors from "cors";
+import corsMiddleware from "cors";
+
+// Define allowed origins for CORS
+const allowedOrigins = [
+   frontend.url, // Auth-server frontend
+   ...cors.allowedOrigins, // Client applications from env
+];
+
 app.use(
-  cors({
-    origin: [
-      `http://localhost:${FRONTEND_PORT}` || "http://localhost:3000",
-      `http://localhost:5173`,
-    ],
-    credentials: true,
-  })
+   corsMiddleware({
+      origin: function (origin, callback) {
+         // Allow requests with no origin (like mobile apps or curl requests)
+         if (!origin) return callback(null, true);
+
+         if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+         } else {
+            console.warn(`CORS blocked origin: ${origin}`);
+            callback(new Error("Not allowed by CORS"));
+         }
+      },
+      credentials: cors.credentials,
+   })
 );
 
 /*
@@ -47,15 +55,16 @@ app.use(
  */
 import session from "express-session";
 app.use(
-  session({
-    secret: "" + SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false, // https only (true in production)
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
-    },
-  })
+   session({
+      secret: security.sessionSecret,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+         sameSite: "lax", // allow same origin different subdomains
+         secure: config.env.isProd, // https only in production
+         maxAge: 1000 * 60 * 60 * 24, // 1 day
+      },
+   })
 );
 
 /*
@@ -63,13 +72,8 @@ app.use(
  * - set window to rate limit window
  * - set limit to rate limit limit
  */
-import { rateLimit } from "express-rate-limit";
-const generalLimiter = rateLimit({
-  windowMs: RATE_LIMIT_WINDOW * 60 * 1000, // 15 minutes
-  limit: RATE_LIMIT_LIMIT, // 300 requests per window
-  standardHeaders: "draft-8", // RateLimit headers
-  legacyHeaders: false, // X-RateLimit headers
-});
+import { rateLimit as expressRateLimit } from "express-rate-limit";
+const generalLimiter = expressRateLimit(rateLimit);
 app.use(generalLimiter);
 
 // --- custom middleware ---
@@ -100,7 +104,7 @@ app.use(generalLimiter);
  *  - GET /api/account/
  *  - POST /api/account/
  *  - PUT /api/account/
- *  - DELETE /api/account/        - for account deletion (data and account)
+ *  - DELETE /api/account/
  *
  * @endpoints role: admin
  *  - GET /api/users/user
@@ -110,20 +114,36 @@ app.use(generalLimiter);
  *  - DELETE /api/users/user
  */
 
+// --- routes ---
+
+/** * Schema detection middleware - detects client schema from URL/token */
+import { detectSchema } from "./src/middleware/schemaDetection.js";
+app.use(detectSchema);
+
+/** * clientServer - for host-application to connect to auth-system */
+import clientServerRoute from "./src/routes/clientServer.js";
+app.use("/api/clientServer", clientServerRoute);
+
 import authRoute from "./src/routes/auth.js";
 app.use("/api/auth", authRoute);
 
 import userRoute from "./src/routes/user.js";
 app.use("/api/users", userRoute);
 
-import accountRoute from "./src/routes/account.js";
-app.use("/api/account", accountRoute);
+/** * owner - for client server owners to manage their applications and users */
+import ownerRoute from "./src/routes/owner.js";
+app.use("/api/owner", ownerRoute);
 
-// Run server if this is the main module (not imported for tests)
+// --- error handling ---
+import { errorHandler } from "./src/middleware/errorHandler.js";
+app.use(errorHandler);
 
-// this is used to check if the server is running directly or being imported for tests
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(server.port, server.host, () => {
+   console.info(`🚀 Server running on ${server.host}:${server.port} (${server.env})`);
+   if (config.env.isDev) {
+      console.info(`📱 Frontend: ${frontend.url}`);
+      console.info(`🔗 API: http://${server.host}:${server.port}/api`);
+   }
 });
 
 // Export app for testing
