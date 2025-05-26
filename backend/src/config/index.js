@@ -6,6 +6,7 @@
  * - Database settings
  * - Security settings
  * - Server configuration
+ * - File paths
  */
 
 import config from './env.js';
@@ -24,5 +25,5 @@ export const {
   env
 } = config;
 
-// Legacy exports
+// Explicit paths export
 export { paths };
