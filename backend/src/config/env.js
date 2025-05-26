@@ -7,15 +7,10 @@
  * 3. Fallback defaults
  */
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
+import paths from "./paths.js"; // Use existing paths configuration
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load .env from project root (fallback if not loaded by GitHub Actions)
-const envPath = path.resolve(__dirname, "..", "..", "..", ".env");
-dotenv.config({ path: envPath });
+// Load .env from project root using existing paths configuration
+dotenv.config({ path: paths.ENV_PATH });
 
 /**
  * Get environment variable with priority:
@@ -175,7 +170,8 @@ const config = {
     NODE_ENV,
     isProd,
     isDev
-  }
+  },
+  paths // Include existing paths for backward compatibility
 };
 
 // Log configuration (excluding sensitive data) in development
@@ -186,9 +182,10 @@ if (isDev) {
   console.log(`   Frontend: ${frontend.url}`);
   console.log(`   Schemas: ${schemas.auth}, ${schemas.template}`);
   console.log(`   CORS Origins: ${cors.allowedOrigins.join(', ')}`);
+  console.log(`   ENV Path: ${paths.ENV_PATH}`);
 }
 
 export default config;
 
 // Legacy exports for backward compatibility
-export { postgres, schemas };
+export { postgres, schemas, paths };
