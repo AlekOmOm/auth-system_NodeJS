@@ -1,10 +1,8 @@
 import { fetchGet, fetchPost } from "../util/fetch";
 import { authStore } from "../stores/authStore";
+import config from "../config/index.js";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-const BACKEND_URL_AUTH = `${BACKEND_URL}/auth`;
-const BACKEND_URL_USERS = `${BACKEND_URL}/users`;
+const { api } = config;
 
 /**
  * Test API connection by fetching users
@@ -13,7 +11,7 @@ const BACKEND_URL_USERS = `${BACKEND_URL}/users`;
 const testApi = async () => {
   try {
     console.log("testApi called");
-    const result = await fetchGet(`${BACKEND_URL_USERS}`);
+    const result = await fetchGet(`${api.baseUrl}/users`);
     console.log("result");
     console.log(result);
 
@@ -41,7 +39,7 @@ const register = async (credentials) => {
 
     // fetchPost now returns an object like { success: boolean, data: ..., errors: ..., message: ... }
     const response = await fetchPost(
-      `${BACKEND_URL_AUTH}/register`,
+      `${api.baseUrl}/auth/register`,
       credentials
     );
 
@@ -59,7 +57,7 @@ const register = async (credentials) => {
       console.warn(
         "Registration successful, but user data missing in response."
       );
-      // End of Selectio
+      // End of Selection
 
       // Return the successful response object
       return response;
@@ -78,10 +76,29 @@ const register = async (credentials) => {
 
 /**
  * Login a user with credentials
- * @param {Object} credentials - User credentials with name, email and password
+ * @param {Object} credentials - User credentials with email and password (name removed)
  * @returns {Promise<Object>} Login result with success status
+ * - invalid input (credentials):
+ *    {
+ *       message: ...,
+ *       success: false,
+ *    }
+ * - sucess:
+ *    {
+ *       data: {
+ *          ... // user data
+ *          allowedUrls: [...],
+ *       },
+ *       message: ...,
+ *       errors: ...,
+ *    }
+ * - failure:
+ *    {
+ *       message: ...,
+ *       success: false,
+ *    }
  */
-const login = async (credentials) => {
+const login = async (credentials, returnUrl = null) => {
   console.log("const login called");
 
   try {
@@ -93,7 +110,21 @@ const login = async (credentials) => {
       };
     }
 
-    const response = await fetchPost(`${BACKEND_URL_AUTH}/login`, credentials);
+    /**
+     * sends Post request to /login
+     *
+     * req:
+     *   {
+     *     body: {
+     *       credentials: { email, password },
+     *       returnUrl: ...
+     *     }
+     *   }
+     */
+    const response = await fetchPost(`${api.baseUrl}/auth/login`, {
+      credentials,
+      returnUrl,
+    });
 
     // fetchPost returns { success, data, message, errors }
     if (!response.success) {
@@ -139,7 +170,7 @@ const login = async (credentials) => {
  */
 const logout = async () => {
   try {
-    const response = await fetchPost(`${BACKEND_URL_AUTH}/logout`, {});
+    const response = await fetchPost(`${api.baseUrl}/auth/logout`, {});
 
     authStore.logout();
     return {
@@ -155,12 +186,33 @@ const logout = async () => {
   }
 };
 
+/**
+ * Get current user session
+ * @returns {Promise<Object>} Session result
+ */
+const getCurrentUser = async () => {
+  try {
+    const response = await fetchGet(`${api.baseUrl}/auth/session`);
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error("Get current user error:", error);
+    return {
+      message: error.message || "Failed to get current user",
+      success: false,
+    };
+  }
+};
+
 // --- export ---
 const authApi = {
   testApi,
   register,
   login,
   logout,
+  getCurrentUser,
 };
 
 export default authApi;
