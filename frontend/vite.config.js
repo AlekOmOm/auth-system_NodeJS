@@ -1,75 +1,109 @@
-// frontend/vite.config.js
 import { defineConfig, loadEnv } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve } from "path";
-import dotenv from "dotenv";
 import path from "path";
 
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+/**
+ * Vite Configuration with Uniform Environment Handling
+ * 
+ * Loads environment variables with priority:
+ * 1. GitHub Secrets (VITE_ prefixed)
+ * 2. .env file values
+ * 3. Fallback defaults
+ */
 
 export default defineConfig(({ mode }) => {
-  // Load env file from parent directory
-  const parentEnv = loadEnv(mode, path.resolve(__dirname, ".."), "");
+  // Load env file from parent directory (project root)
+  const env = loadEnv(mode, path.resolve(__dirname, ".."), "");
+  
+  // Environment detection
+  const NODE_ENV = env.NODE_ENV || mode;
+  const isProd = NODE_ENV === 'production';
+  const isDev = NODE_ENV === 'development';
 
-/* .env.template
+  /**
+   * Get environment variable with fallback
+   */
+  const getEnv = (key, fallback = null) => {
+    // Try VITE_ prefixed version first, then regular version, then fallback
+    return env[`VITE_${key}`] || env[key] || fallback;
+  };
 
-# Frontend
-DEV_FRONTEND_PORT=3000
-DEV_FRONTEND_HOST=localhost
-PROD_FRONTEND_PORT=3000
-PROD_FRONTEND_HOST=localhost
+  /**
+   * Get numeric environment variable
+   */
+  const getEnvNumber = (key, fallback = 0) => {
+    const value = getEnv(key, fallback.toString());
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? fallback : parsed;
+  };
 
-# Backend
-DEV_BACKEND_PORT=3001
-DEV_BACKEND_HOST=localhost
-PROD_BACKEND_PORT=3001
-PROD_BACKEND_HOST=localhost
+  // Server Configuration
+  const FRONTEND_PORT = getEnvNumber(isProd ? 'PROD_FRONTEND_PORT' : 'DEV_FRONTEND_PORT', 3000);
+  const FRONTEND_HOST = getEnv(isProd ? 'PROD_FRONTEND_HOST' : 'DEV_FRONTEND_HOST', 'localhost');
+  
+  // Backend Configuration
+  const BACKEND_PORT = getEnvNumber(isProd ? 'PROD_BACKEND_PORT' : 'DEV_BACKEND_PORT', 3001);
+  const BACKEND_HOST = getEnv(isProd ? 'PROD_BACKEND_HOST' : 'DEV_BACKEND_HOST', 'localhost');
 
-# API
-DEV_API_URL=http://localhost:3001/api
-PROD_API_URL=http://localhost:3001/api
+  // API URL Construction
+  const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
+  const API_URL = getEnv('API_URL') || getEnv('BACKEND_URL') || `${BACKEND_URL}/api`;
 
-*/
+  // Log configuration in development
+  if (isDev) {
+    console.log('🔧 Vite Configuration:');
+    console.log(`   Mode: ${mode} (${NODE_ENV})`);
+    console.log(`   Frontend: ${FRONTEND_HOST}:${FRONTEND_PORT}`);
+    console.log(`   Backend: ${BACKEND_HOST}:${BACKEND_PORT}`);
+    console.log(`   API URL: ${API_URL}`);
+  }
 
-const FRONTEND_PORT = isProd
-  ? process.env.PROD_FRONTEND_PORT || 3000
-  : process.env.DEV_FRONTEND_PORT || 3000;
-
-const FRONTEND_HOST = isProd
-  ? process.env.PROD_FRONTEND_HOST || "localhost"
-  : process.env.DEV_FRONTEND_HOST || "localhost";
-
-const BACKEND_PORT = isProd
-  ? process.env.PROD_BACKEND_PORT || 3001
-  : process.env.DEV_BACKEND_PORT || 3001;
-
-const BACKEND_HOST = isProd
-  ? process.env.PROD_BACKEND_HOST || "localhost"
-  : process.env.DEV_BACKEND_HOST || "localhost";
-
-// --- urls ---
-const BACKEND_URL = isProd
-  ? `http://${BACKEND_HOST}:${BACKEND_PORT}`
-  : `http://${BACKEND_HOST}:${BACKEND_PORT}`;
-
-const apiUrl = isProd
-  ? `http://${BACKEND_HOST}:${BACKEND_PORT}/api`
-  : `http://${BACKEND_HOST}:${BACKEND_PORT}/api`;
-
-// https://vite.dev/config/
-
-// auth-system_NodeJS\.env
-// auth-system_NodeJS\frontend
-// auth-system_NodeJS\backend
-export default defineConfig({
-  plugins: [svelte()],
-  envDir: resolve(__dirname, ".."),
-  server: {
-    port: FRONTEND_PORT,
-    host: FRONTEND_HOST,
-  },
-  define: {
-    "import.meta.env.VITE_API_URL": JSON.stringify(apiUrl),
-    "import.meta.env.VITE_BACKEND_URL": JSON.stringify(apiUrl),
-  },
+  return {
+    plugins: [svelte()],
+    envDir: resolve(__dirname, ".."), // Load .env from project root
+    server: {
+      port: FRONTEND_PORT,
+      host: FRONTEND_HOST,
+      // Proxy API calls to backend
+      proxy: {
+        "/api": {
+          target: BACKEND_URL,
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, options) => {
+            proxy.on("error", (err, req, res) => {
+              console.log("Proxy error:", err);
+            });
+            if (isDev) {
+              proxy.on("proxyReq", (proxyReq, req, res) => {
+                console.log(
+                  "Proxying request:",
+                  req.method,
+                  req.url,
+                  "->",
+                  options.target + req.url
+                );
+              });
+            }
+          },
+        },
+      },
+    },
+    build: {
+      outDir: "dist",
+      sourcemap: isDev,
+      minify: isProd,
+    },
+    define: {
+      // Expose environment variables to the frontend
+      "import.meta.env.VITE_API_URL": JSON.stringify(API_URL),
+      "import.meta.env.VITE_BACKEND_URL": JSON.stringify(API_URL),
+      "import.meta.env.VITE_NODE_ENV": JSON.stringify(NODE_ENV),
+      "import.meta.env.VITE_FRONTEND_HOST": JSON.stringify(FRONTEND_HOST),
+      "import.meta.env.VITE_FRONTEND_PORT": JSON.stringify(FRONTEND_PORT),
+      "import.meta.env.VITE_BACKEND_HOST": JSON.stringify(BACKEND_HOST),
+      "import.meta.env.VITE_BACKEND_PORT": JSON.stringify(BACKEND_PORT),
+    },
+  };
 });
